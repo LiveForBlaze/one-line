@@ -1,7 +1,17 @@
 import { PinGate } from "@/components/PinGate";
+import { ConfirmationDialog } from "@/components/settings/ConfirmationDialog";
+import { LanguagePickerModal } from "@/components/settings/LanguagePickerModal";
+import { PrivacySection } from "@/components/settings/PrivacySection";
+import { RecoveryKeyModal } from "@/components/settings/RecoveryKeyModal";
+import {
+  SettingsRow,
+  SettingsSection,
+} from "@/components/settings/SettingsSection";
+import { ThemePickerModal } from "@/components/settings/ThemePickerModal";
+import { TimePickerModal } from "@/components/settings/TimePickerModal";
 import { Divider } from "@/components/ui/Divider";
 import { Text } from "@/components/ui/Text";
-import { Radii, Spacing } from "@/constants/theme";
+import { Spacing } from "@/constants/theme";
 import { useT } from "@/hooks/useT";
 import { useTheme } from "@/hooks/useTheme";
 import { i18n } from "@/i18n";
@@ -11,20 +21,15 @@ import {
   scheduleDailyReminder,
 } from "@/services/notifications";
 import { useAuthStore } from "@/store/auth";
-import { useSettingsStore, type AppLanguage } from "@/store/settings";
+import {
+  useSettingsStore,
+  type AppLanguage,
+  type ThemeMode,
+} from "@/store/settings";
 import * as LocalAuthentication from "expo-local-authentication";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  Alert,
-  FlatList,
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  View,
-} from "react-native";
+import { Clipboard, ScrollView, StyleSheet, Switch, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const SUPPORTED_LANGUAGES: {
@@ -37,85 +42,6 @@ const SUPPORTED_LANGUAGES: {
   { code: "de", label: "German", native: "Deutsch" },
 ];
 
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  const theme = useTheme();
-  return (
-    <View style={styles.section}>
-      <Text
-        variant="caption"
-        secondary
-        style={[styles.sectionTitle, { color: theme.textSecondary }]}
-      >
-        {title.toUpperCase()}
-      </Text>
-      <View
-        style={[
-          styles.sectionBody,
-          { backgroundColor: theme.surface, borderColor: theme.border },
-        ]}
-      >
-        {children}
-      </View>
-    </View>
-  );
-}
-
-function Row({
-  label,
-  subtitle,
-  value,
-  onPress,
-  right,
-  destructive,
-}: {
-  label: string;
-  subtitle?: string;
-  value?: string;
-  onPress?: () => void;
-  right?: React.ReactNode;
-  destructive?: boolean;
-}) {
-  const theme = useTheme();
-  return (
-    <Pressable
-      style={({ pressed }) => [
-        styles.row,
-        { opacity: pressed && onPress ? 0.6 : 1 },
-      ]}
-      onPress={onPress}
-      disabled={!onPress}
-    >
-      <View style={styles.rowLabel}>
-        <Text
-          variant="body"
-          style={{ color: destructive ? theme.challenging : theme.text }}
-        >
-          {label}
-        </Text>
-        {subtitle && (
-          <Text variant="caption" secondary style={styles.rowSubtitle}>
-            {subtitle}
-          </Text>
-        )}
-      </View>
-      <View style={styles.rowRight}>
-        {value && (
-          <Text variant="body" secondary>
-            {value}
-          </Text>
-        )}
-        {right}
-      </View>
-    </Pressable>
-  );
-}
-
 export default function SettingsScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -127,6 +53,15 @@ export default function SettingsScreen() {
   const [hasPin, setHasPin] = useState(false);
   const [showUnlockGate, setShowUnlockGate] = useState(false);
   const [showLangPicker, setShowLangPicker] = useState(false);
+  const [showThemePicker, setShowThemePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [showRegenerateConfirmModal, setShowRegenerateConfirmModal] =
+    useState(false);
+  const [newRecoveryKey, setNewRecoveryKey] = useState("");
+  const [showRecoveryKeyModal, setShowRecoveryKeyModal] = useState(false);
+  const [recoveryKeyCopied, setRecoveryKeyCopied] = useState(false);
+  const [draftHour, setDraftHour] = useState(settings.notificationHour);
+  const [draftMinute, setDraftMinute] = useState(settings.notificationMinute);
 
   const { isPrivateModeOn } = auth;
 
@@ -176,37 +111,37 @@ export default function SettingsScreen() {
     [settings, t],
   );
 
-  const handleRemovePrivateMode = useCallback(() => {
-    Alert.alert(
-      t("settings.removePrivateModeTitle"),
-      t("settings.removePrivateModeMessage"),
-      [
-        { text: t("auth.cancel"), style: "cancel" },
-        {
-          text: t("settings.removePrivateModeOk"),
-          style: "destructive",
-          onPress: async () => {
-            await auth.removePrivatePin();
-            settings.setBiometricsEnabled(false);
-            setHasPin(false);
-          },
-        },
-      ],
-    );
-  }, [auth, settings, t]);
+  const handleRegenerateRecoveryKey = useCallback(() => {
+    setShowRegenerateConfirmModal(true);
+  }, []);
 
-  const handleRegenerateRecoveryKey = useCallback(async () => {
+  const confirmRegenerateRecoveryKey = useCallback(async () => {
     const newKey = await auth.regenerateRecoveryKey();
-    Alert.alert(t("settings.newRecoveryKey"), newKey, [
-      { text: t("settings.savedIt"), style: "default" },
-    ]);
-  }, [auth, t]);
+    setShowRegenerateConfirmModal(false);
+    setRecoveryKeyCopied(false);
+    setNewRecoveryKey(newKey);
+    setShowRecoveryKeyModal(true);
+  }, [auth]);
+
+  const handleCopyRecoveryKey = useCallback(() => {
+    Clipboard.setString(newRecoveryKey);
+    setRecoveryKeyCopied(true);
+    setTimeout(() => setRecoveryKeyCopied(false), 2000);
+  }, [newRecoveryKey]);
 
   const activeLangCode = settings.language ?? i18n.language ?? "en";
   const currentLang =
     SUPPORTED_LANGUAGES.find((l) => l.code === activeLangCode) ??
     SUPPORTED_LANGUAGES[0];
   const currentLangLabel = currentLang.native;
+  const themeOptions: { code: ThemeMode; label: string }[] = [
+    { code: "system", label: t("settings.themeSystem") },
+    { code: "light", label: t("settings.themeLight") },
+    { code: "dark", label: t("settings.themeDark") },
+  ];
+  const currentThemeLabel =
+    themeOptions.find((option) => option.code === settings.themeMode)?.label ??
+    themeOptions[0].label;
 
   const handleLanguageSelect = useCallback(
     (code: AppLanguage) => {
@@ -216,6 +151,29 @@ export default function SettingsScreen() {
     },
     [settings],
   );
+
+  const handleThemeSelect = useCallback(
+    (mode: ThemeMode) => {
+      settings.setThemeMode(mode);
+      setShowThemePicker(false);
+    },
+    [settings],
+  );
+
+  const openTimePicker = useCallback(() => {
+    setDraftHour(settings.notificationHour);
+    setDraftMinute(settings.notificationMinute);
+    setShowTimePicker(true);
+  }, [settings.notificationHour, settings.notificationMinute]);
+
+  const handleTimeSave = useCallback(async () => {
+    settings.setNotificationTime(draftHour, draftMinute);
+    setShowTimePicker(false);
+
+    if (settings.notificationsEnabled) {
+      await scheduleDailyReminder(draftHour, draftMinute);
+    }
+  }, [draftHour, draftMinute, settings]);
 
   const notificationTimeLabel = `${String(settings.notificationHour).padStart(2, "0")}:${String(settings.notificationMinute).padStart(2, "0")}`;
 
@@ -232,8 +190,8 @@ export default function SettingsScreen() {
         <Text variant="title">{t("settings.title")}</Text>
       </View>
 
-      <Section title={t("settings.reminders")}>
-        <Row
+      <SettingsSection title={t("settings.reminders")}>
+        <SettingsRow
           label={t("settings.dailyReminder")}
           right={
             <Switch
@@ -250,96 +208,50 @@ export default function SettingsScreen() {
         {settings.notificationsEnabled && (
           <>
             <Divider inset={Spacing[4]} />
-            <Row
+            <SettingsRow
               label={t("settings.reminderTime")}
               value={notificationTimeLabel}
+              onPress={openTimePicker}
             />
           </>
         )}
-      </Section>
+      </SettingsSection>
 
-      <Section title={t("settings.privacy")}>
-        {!hasPin ? (
-          // No Private Mode set up yet
-          <Row
-            label={t("settings.setupPrivateMode")}
-            subtitle={t("settings.setupPrivateModeHint")}
-            onPress={() => {
-              router.push("/pin/setup");
-              // After setup, refresh hasPin on next focus
-              setTimeout(() => auth.hasPrivatePin().then(setHasPin), 500);
-            }}
-          />
-        ) : !isPrivateModeOn ? (
-          // PIN set but mode is off
-          <Row
-            label={t("settings.enterPrivateMode")}
-            onPress={() => setShowUnlockGate(true)}
-          />
-        ) : (
-          // Private Mode is ON — show all controls
-          <>
-            <Row
-              label={t("settings.exitPrivateMode")}
-              onPress={() => auth.lockPrivate()}
-            />
-            <Divider inset={Spacing[4]} />
-            <Row
-              label={t("settings.changePIN")}
-              onPress={() => router.push("/pin/setup")}
-            />
-            {hasBiometrics && (
-              <>
-                <Divider inset={Spacing[4]} />
-                <Row
-                  label={t("settings.useBiometrics")}
-                  right={
-                    <Switch
-                      value={settings.biometricsEnabled}
-                      onValueChange={handleBiometricsToggle}
-                      trackColor={{
-                        false: theme.border,
-                        true: theme.tintBackground,
-                      }}
-                      thumbColor={
-                        settings.biometricsEnabled
-                          ? theme.tint
-                          : theme.textTertiary
-                      }
-                      ios_backgroundColor={theme.border}
-                    />
-                  }
-                />
-              </>
-            )}
-            <Divider inset={Spacing[4]} />
-            <Row
-              label={t("settings.regenerateRecoveryKey")}
-              onPress={handleRegenerateRecoveryKey}
-            />
-            <Divider inset={Spacing[4]} />
-            <Row
-              label={t("settings.removePrivateMode")}
-              onPress={handleRemovePrivateMode}
-              destructive
-            />
-          </>
-        )}
-      </Section>
+      <PrivacySection
+        hasPin={hasPin}
+        isPrivateModeOn={isPrivateModeOn}
+        hasBiometrics={hasBiometrics}
+        biometricsEnabled={settings.biometricsEnabled}
+        onSetupPrivateMode={() => {
+          router.push("/pin/setup");
+          setTimeout(() => auth.hasPrivatePin().then(setHasPin), 500);
+        }}
+        onEnterPrivateMode={() => setShowUnlockGate(true)}
+        onExitPrivateMode={() => auth.lockPrivate()}
+        onToggleBiometrics={handleBiometricsToggle}
+        onChangePin={() => router.push("/pin/setup")}
+        onRegenerateRecoveryKey={handleRegenerateRecoveryKey}
+      />
 
-      <Section title={t("settings.general")}>
-        <Row
+      <SettingsSection title={t("settings.general")}>
+        <SettingsRow
+          label={t("settings.theme")}
+          value={currentThemeLabel}
+          onPress={() => setShowThemePicker(true)}
+        />
+        <Divider inset={Spacing[4]} />
+        <SettingsRow
           label={t("settings.language")}
           value={currentLangLabel}
           onPress={() => setShowLangPicker(true)}
         />
-      </Section>
+      </SettingsSection>
 
-      <Section title={t("settings.about")}>
-        <Row label="OneLine" value="1.0.0" />
+      <SettingsSection title={t("settings.about")}>
+        <SettingsRow label="OneLine" value="1.0.0" />
         <Divider inset={Spacing[4]} />
-        <Row label={t("settings.dataLocal")} />
-      </Section>
+        <SettingsRow label={t("settings.dataLocal")} />
+      </SettingsSection>
 
       <PinGate
         visible={showUnlockGate}
@@ -347,82 +259,48 @@ export default function SettingsScreen() {
         onCancel={() => setShowUnlockGate(false)}
       />
 
-      <Modal
-        visible={showLangPicker}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowLangPicker(false)}
-        statusBarTranslucent
-      >
-        <Pressable
-          style={langStyles.backdrop}
-          onPress={() => setShowLangPicker(false)}
-        >
-          <View style={langStyles.backdropBg} />
-        </Pressable>
+      <ConfirmationDialog
+        visible={showRegenerateConfirmModal}
+        title={t("settings.confirmRegenerateRecoveryKeyTitle")}
+        message={t("settings.confirmRegenerateRecoveryKeyMessage")}
+        confirmLabel={t("settings.confirmRegenerateRecoveryKeyOk")}
+        onConfirm={confirmRegenerateRecoveryKey}
+        onClose={() => setShowRegenerateConfirmModal(false)}
+      />
 
-        <View
-          style={[
-            langStyles.sheet,
-            {
-              backgroundColor: theme.background,
-              paddingBottom: insets.bottom + Spacing[4],
-            },
-          ]}
-        >
-          <View style={langStyles.handle}>
-            <View
-              style={[langStyles.handleBar, { backgroundColor: theme.border }]}
-            />
-          </View>
-          <Text variant="label" secondary style={langStyles.sheetTitle}>
-            {t("settings.language").toUpperCase()}
-          </Text>
-          <FlatList
-            data={SUPPORTED_LANGUAGES}
-            keyExtractor={(item) => item.code}
-            showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => {
-              const isActive = item.code === activeLangCode;
-              return (
-                <Pressable
-                  style={({ pressed }) => [
-                    langStyles.langRow,
-                    { opacity: pressed ? 0.6 : 1 },
-                  ]}
-                  onPress={() => handleLanguageSelect(item.code)}
-                >
-                  <View style={langStyles.langLabel}>
-                    <Text variant="body" style={{ color: theme.text }}>
-                      {item.native}
-                    </Text>
-                    <Text
-                      variant="caption"
-                      secondary
-                      style={{ marginLeft: Spacing[2] }}
-                    >
-                      {item.label}
-                    </Text>
-                  </View>
-                  {isActive && (
-                    <Text variant="body" style={{ color: theme.tint }}>
-                      ✓
-                    </Text>
-                  )}
-                </Pressable>
-              );
-            }}
-            ItemSeparatorComponent={() => (
-              <View
-                style={[
-                  langStyles.separator,
-                  { backgroundColor: theme.border },
-                ]}
-              />
-            )}
-          />
-        </View>
-      </Modal>
+      <RecoveryKeyModal
+        visible={showRecoveryKeyModal}
+        recoveryKey={newRecoveryKey}
+        copied={recoveryKeyCopied}
+        onCopy={handleCopyRecoveryKey}
+        onClose={() => setShowRecoveryKeyModal(false)}
+      />
+
+      <TimePickerModal
+        visible={showTimePicker}
+        draftHour={draftHour}
+        draftMinute={draftMinute}
+        onChangeHour={setDraftHour}
+        onChangeMinute={setDraftMinute}
+        onSave={handleTimeSave}
+        onClose={() => setShowTimePicker(false)}
+      />
+
+      <LanguagePickerModal
+        visible={showLangPicker}
+        activeLanguageCode={activeLangCode}
+        languages={SUPPORTED_LANGUAGES}
+        onSelect={handleLanguageSelect}
+        onClose={() => setShowLangPicker(false)}
+      />
+
+      <ThemePickerModal
+        visible={showThemePicker}
+        activeThemeMode={settings.themeMode}
+        options={themeOptions}
+        onSelect={handleThemeSelect}
+        onClose={() => setShowThemePicker(false)}
+      />
     </ScrollView>
   );
 }
@@ -431,72 +309,4 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { paddingBottom: Spacing[16], gap: Spacing[4] },
   pageHeader: { paddingHorizontal: Spacing[5], paddingBottom: Spacing[2] },
-  section: { paddingHorizontal: Spacing[4], gap: Spacing[1] },
-  sectionTitle: {
-    paddingHorizontal: Spacing[2],
-    marginBottom: Spacing[1],
-    letterSpacing: 0.6,
-  },
-  sectionBody: {
-    borderRadius: Radii.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    overflow: "hidden",
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: Spacing[4],
-    paddingVertical: Spacing[3] + 2,
-    minHeight: 44,
-    gap: Spacing[2],
-  },
-  rowLabel: { flex: 1, gap: 2 },
-  rowSubtitle: { marginTop: 1 },
-  rowRight: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing[2],
-    flexShrink: 0,
-  },
-});
-
-const langStyles = StyleSheet.create({
-  backdrop: { ...StyleSheet.absoluteFillObject },
-  backdropBg: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)" },
-  sheet: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    borderTopLeftRadius: Radii.xl,
-    borderTopRightRadius: Radii.xl,
-    maxHeight: "70%",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
-    elevation: 10,
-  },
-  handle: {
-    alignItems: "center",
-    paddingTop: Spacing[3],
-    paddingBottom: Spacing[1],
-  },
-  handleBar: { width: 36, height: 4, borderRadius: 2 },
-  sheetTitle: {
-    paddingHorizontal: Spacing[5],
-    paddingVertical: Spacing[3],
-    letterSpacing: 0.6,
-  },
-  langRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: Spacing[5],
-    paddingVertical: Spacing[3] + 2,
-    minHeight: 48,
-  },
-  langLabel: { flexDirection: "row", alignItems: "center" },
-  separator: { height: StyleSheet.hairlineWidth, marginLeft: Spacing[5] },
 });

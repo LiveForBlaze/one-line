@@ -1,20 +1,23 @@
-import { create } from 'zustand';
-import * as SecureStore from 'expo-secure-store';
-import * as LocalAuthentication from 'expo-local-authentication';
+import * as LocalAuthentication from "expo-local-authentication";
+import * as SecureStore from "expo-secure-store";
+import { create } from "zustand";
 
-const PRIVATE_PIN_KEY = 'oneline_private_pin';
-const RECOVERY_KEY_KEY = 'oneline_recovery_key';
+const PRIVATE_PIN_KEY = "oneline_private_pin";
+const RECOVERY_KEY_KEY = "oneline_recovery_key";
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_MS = 5 * 60 * 1000;
 
 // Alphanumeric chars excluding visually ambiguous ones (0, O, I, 1, L)
-const KEY_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const KEY_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 
 function generateRecoveryKey(): string {
   const groups = Array.from({ length: 4 }, () =>
-    Array.from({ length: 4 }, () => KEY_CHARS[Math.floor(Math.random() * KEY_CHARS.length)]).join(''),
+    Array.from(
+      { length: 4 },
+      () => KEY_CHARS[Math.floor(Math.random() * KEY_CHARS.length)],
+    ).join(""),
   );
-  return groups.join('-');
+  return groups.join("-");
 }
 
 interface AuthState {
@@ -25,7 +28,6 @@ interface AuthState {
   hasPrivatePin: () => Promise<boolean>;
   /** Creates PIN + recovery key. Returns the plaintext recovery key to show once. */
   setupPrivatePin: (pin: string) => Promise<string>;
-  removePrivatePin: () => Promise<void>;
   verifyPin: (pin: string) => Promise<boolean>;
   unlockWithBiometrics: () => Promise<boolean>;
   lockPrivate: () => void;
@@ -33,7 +35,10 @@ interface AuthState {
   remainingLockSeconds: () => number;
   verifyRecoveryKey: (key: string) => Promise<boolean>;
   /** Resets PIN using a valid recovery key. Returns new recovery key to show once. */
-  resetPinWithRecoveryKey: (recoveryKey: string, newPin: string) => Promise<string | null>;
+  resetPinWithRecoveryKey: (
+    recoveryKey: string,
+    newPin: string,
+  ) => Promise<string | null>;
   /** Re-generates recovery key (call only when private mode is already ON). Returns new key. */
   regenerateRecoveryKey: () => Promise<string>;
 }
@@ -53,12 +58,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     await SecureStore.setItemAsync(RECOVERY_KEY_KEY, recoveryKey);
     set({ isPrivateModeOn: true, attempts: 0, lockedUntil: null });
     return recoveryKey;
-  },
-
-  async removePrivatePin() {
-    await SecureStore.deleteItemAsync(PRIVATE_PIN_KEY);
-    await SecureStore.deleteItemAsync(RECOVERY_KEY_KEY);
-    set({ isPrivateModeOn: false, attempts: 0, lockedUntil: null });
   },
 
   async verifyPin(pin: string) {
@@ -82,8 +81,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   async unlockWithBiometrics() {
     const result = await LocalAuthentication.authenticateAsync({
-      promptMessage: 'Unlock Private Mode',
-      cancelLabel: 'Use PIN',
+      promptMessage: "Unlock Private Mode",
+      cancelLabel: "Use PIN",
       disableDeviceFallback: true,
     });
     if (result.success) set({ isPrivateModeOn: true });
