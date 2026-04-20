@@ -1,117 +1,144 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { EntryCard } from "@/components/EntryCard";
+import { MonthSeparator } from "@/components/MonthSeparator";
+import { Text } from "@/components/ui/Text";
+import { Fonts, FontSizes, Radii, Spacing } from "@/constants/theme";
+import type { Entry } from "@/db/types";
+import { useDateLocale } from "@/hooks/useDateLocale";
+import { useT } from "@/hooks/useT";
+import { useTheme } from "@/hooks/useTheme";
+import { useAuthStore } from "@/store/auth";
+import { useEntriesStore } from "@/store/entries";
+import { format, parseISO } from "date-fns";
+import { useFocusEffect } from "expo-router";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  View,
-  StyleSheet,
   FlatList,
-  TextInput,
-  Pressable,
   Modal,
+  Pressable,
   ScrollView,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusEffect } from 'expo-router';
-import { format, parseISO } from 'date-fns';
-import Animated, { FadeIn } from 'react-native-reanimated';
-import { Text } from '@/components/ui/Text';
-import { EntryCard } from '@/components/EntryCard';
-import { MonthSeparator } from '@/components/MonthSeparator';
-import { useTheme } from '@/hooks/useTheme';
-import { useDateLocale } from '@/hooks/useDateLocale';
-import { useEntriesStore } from '@/store/entries';
-import { useAuthStore } from '@/store/auth';
-import { Fonts, FontSizes, Spacing, Radii } from '@/constants/theme';
-import { useT } from '@/hooks/useT';
-import type { Entry } from '@/db/types';
+  StyleSheet,
+  TextInput,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type FilterKind = 'all' | 'common' | 'private';
+type FilterKind = "all" | "common" | "private";
 
 type ListItem =
-  | { type: 'month'; key: string; month: string }
-  | { type: 'entry'; key: string; entry: Entry };
+  | { type: "month"; key: string; month: string }
+  | { type: "entry"; key: string; entry: Entry };
 
 export default function FeedScreen() {
   const theme = useTheme();
   const locale = useDateLocale();
   const insets = useSafeAreaInsets();
   const { t } = useT();
-  const { entries, searchResults, load, search, clearSearch } = useEntriesStore();
+  const { entries, searchResults, load, search, clearSearch } =
+    useEntriesStore();
   const { isPrivateModeOn } = useAuthStore();
-  const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState<FilterKind>('all');
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<FilterKind>("all");
   const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       load(isPrivateModeOn);
-      if (!isPrivateModeOn) setFilter('all');
-    }, [isPrivateModeOn]),
+      if (!isPrivateModeOn) setFilter("all");
+    }, [isPrivateModeOn, load]),
   );
 
-  const searchKind = isPrivateModeOn ? filter : 'common';
+  const searchKind = isPrivateModeOn ? filter : "common";
 
-  const handleSearch = useCallback((text: string) => {
-    setQuery(text);
-    search(text, searchKind);
-  }, [search, searchKind]);
+  const handleSearch = useCallback(
+    (text: string) => {
+      setQuery(text);
+      search(text, searchKind);
+    },
+    [search, searchKind],
+  );
 
   useEffect(() => {
     if (query.trim()) search(query, searchKind);
-  }, [searchKind]);
+  }, [query, search, searchKind]);
 
   const handleClearSearch = useCallback(() => {
-    setQuery('');
+    setQuery("");
     clearSearch();
   }, [clearSearch]);
 
   const displayEntries = useMemo(() => {
     if (searchResults) return searchResults;
-    if (!isPrivateModeOn || filter === 'all') return entries;
+    if (!isPrivateModeOn || filter === "all") return entries;
     return entries.filter((e) => e.kind === filter);
   }, [searchResults, entries, isPrivateModeOn, filter]);
 
   const listData = useMemo<ListItem[]>(() => {
     const items: ListItem[] = [];
-    let lastMonth = '';
+    let lastMonth = "";
     for (const entry of displayEntries) {
       const month = entry.date.slice(0, 7);
       if (month !== lastMonth && !searchResults) {
-        items.push({ type: 'month', key: `month-${month}-${entry.kind}`, month: entry.date });
+        items.push({
+          type: "month",
+          key: `month-${month}-${entry.kind}`,
+          month: entry.date,
+        });
         lastMonth = month;
       }
-      items.push({ type: 'entry', key: `entry-${entry.date}-${entry.kind}`, entry });
+      items.push({
+        type: "entry",
+        key: `entry-${entry.date}-${entry.kind}`,
+        entry,
+      });
     }
     return items;
   }, [displayEntries, searchResults]);
 
-  const renderItem = useCallback(({ item }: { item: ListItem }) => {
-    if (item.type === 'month') return <MonthSeparator dateStr={item.month} />;
-    return (
-      <EntryCard
-        entry={item.entry}
-        isPrivateModeOn={isPrivateModeOn}
-        onPress={() => setSelectedEntry(item.entry)}
-      />
-    );
-  }, [isPrivateModeOn]);
+  const renderItem = useCallback(
+    ({ item }: { item: ListItem }) => {
+      if (item.type === "month") return <MonthSeparator dateStr={item.month} />;
+      return (
+        <EntryCard
+          entry={item.entry}
+          isPrivateModeOn={isPrivateModeOn}
+          onPress={() => setSelectedEntry(item.entry)}
+        />
+      );
+    },
+    [isPrivateModeOn],
+  );
 
   const FILTERS: { key: FilterKind; label: string }[] = [
-    { key: 'all', label: t('feed.filterAll') },
-    { key: 'common', label: t('feed.filterCommon') },
-    { key: 'private', label: t('feed.filterPrivate') },
+    { key: "all", label: t("feed.filterAll") },
+    { key: "common", label: t("feed.filterCommon") },
+    { key: "private", label: t("feed.filterPrivate") },
   ];
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <View style={[
-        styles.header,
-        { backgroundColor: theme.background, borderBottomColor: theme.border, paddingTop: insets.top + Spacing[2] },
-      ]}>
+      <View
+        style={[
+          styles.header,
+          {
+            backgroundColor: theme.background,
+            borderBottomColor: theme.border,
+            paddingTop: insets.top + Spacing[2],
+          },
+        ]}
+      >
         <View style={styles.searchRow}>
           <TextInput
-            style={[styles.searchInput, { color: theme.text, fontFamily: Fonts.sans, fontSize: FontSizes.base }]}
+            style={[
+              styles.searchInput,
+              {
+                color: theme.text,
+                fontFamily: Fonts.sans,
+                fontSize: FontSizes.base,
+              },
+            ]}
             value={query}
             onChangeText={handleSearch}
-            placeholder={t('feed.search')}
+            placeholder={t("feed.search")}
             placeholderTextColor={theme.textTertiary}
             returnKeyType="search"
             autoCorrect={false}
@@ -120,22 +147,35 @@ export default function FeedScreen() {
           />
           {query.length > 0 && (
             <Pressable onPress={handleClearSearch} style={styles.cancelBtn}>
-              <Text variant="label" style={{ color: theme.tint }}>{t('feed.cancel')}</Text>
+              <Text variant="label" style={{ color: theme.tint }}>
+                {t("feed.cancel")}
+              </Text>
             </Pressable>
           )}
         </View>
 
         {isPrivateModeOn && (
-          <View style={[styles.filterRow, { backgroundColor: theme.surfaceElevated }]}>
+          <View
+            style={[
+              styles.filterRow,
+              { backgroundColor: theme.surfaceElevated },
+            ]}
+          >
             {FILTERS.map(({ key, label }) => {
               const active = filter === key;
               return (
                 <Pressable
                   key={key}
                   onPress={() => setFilter(key)}
-                  style={[styles.filterBtn, active && { backgroundColor: theme.surface }]}
+                  style={[
+                    styles.filterBtn,
+                    active && { backgroundColor: theme.surface },
+                  ]}
                 >
-                  <Text variant="label" style={{ color: active ? theme.text : theme.textTertiary }}>
+                  <Text
+                    variant="label"
+                    style={{ color: active ? theme.text : theme.textTertiary }}
+                  >
                     {label}
                   </Text>
                 </Pressable>
@@ -148,7 +188,7 @@ export default function FeedScreen() {
       {listData.length === 0 ? (
         <View style={styles.empty}>
           <Text variant="body" secondary style={styles.emptyText}>
-            {query ? t('feed.emptySearch') : t('feed.empty')}
+            {query ? t("feed.emptySearch") : t("feed.empty")}
           </Text>
         </View>
       ) : (
@@ -159,7 +199,9 @@ export default function FeedScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.list}
           ItemSeparatorComponent={() => (
-            <View style={[styles.separator, { backgroundColor: theme.border }]} />
+            <View
+              style={[styles.separator, { backgroundColor: theme.border }]}
+            />
           )}
         />
       )}
@@ -176,29 +218,60 @@ export default function FeedScreen() {
           style={styles.backdrop}
           onPress={() => setSelectedEntry(null)}
         >
-          <View style={[styles.backdropBg, { backgroundColor: 'rgba(0,0,0,0.4)' }]} />
+          <View
+            style={[styles.backdropBg, { backgroundColor: "rgba(0,0,0,0.4)" }]}
+          />
         </Pressable>
 
         {selectedEntry && (
           <View
-            style={[styles.sheet, { backgroundColor: theme.background, paddingBottom: insets.bottom + Spacing[6] }]}
+            style={[
+              styles.sheet,
+              {
+                backgroundColor: theme.background,
+                paddingBottom: insets.bottom + Spacing[6],
+              },
+            ]}
           >
             {/* Handle */}
             <View style={styles.sheetHandle}>
-              <View style={[styles.handleBar, { backgroundColor: theme.border }]} />
+              <View
+                style={[styles.handleBar, { backgroundColor: theme.border }]}
+              />
             </View>
 
             {/* Date */}
             <View style={styles.sheetDateRow}>
-              <Text style={[styles.sheetDayNum, { color: theme.tint, fontFamily: Fonts.serif }]}>
-                {format(parseISO(selectedEntry.date), 'd', { locale })}
+              <Text
+                style={[
+                  styles.sheetDayNum,
+                  { color: theme.tint, fontFamily: Fonts.serif },
+                ]}
+              >
+                {format(parseISO(selectedEntry.date), "d", { locale })}
               </Text>
               <View>
-                <Text style={[styles.sheetWeekday, { color: theme.textTertiary }]}>
-                  {format(parseISO(selectedEntry.date), 'EEEE', { locale }).toUpperCase()}
+                <Text
+                  style={[styles.sheetWeekday, { color: theme.textTertiary }]}
+                >
+                  {format(parseISO(selectedEntry.date), "EEEE", {
+                    locale,
+                  }).toUpperCase()}
                 </Text>
-                <Text style={[styles.sheetMonthYear, { color: theme.textSecondary }]}>
-                  {(() => { const s = format(parseISO(selectedEntry.date), 'LLLL yyyy', { locale }); return s.charAt(0).toUpperCase() + s.slice(1); })()}
+                <Text
+                  style={[
+                    styles.sheetMonthYear,
+                    { color: theme.textSecondary },
+                  ]}
+                >
+                  {(() => {
+                    const s = format(
+                      parseISO(selectedEntry.date),
+                      "LLLL yyyy",
+                      { locale },
+                    );
+                    return s.charAt(0).toUpperCase() + s.slice(1);
+                  })()}
                 </Text>
               </View>
             </View>
@@ -209,8 +282,13 @@ export default function FeedScreen() {
               showsVerticalScrollIndicator={false}
               bounces={false}
             >
-              <Text style={[styles.sheetText, { color: theme.text, fontFamily: Fonts.serif }]}>
-                {selectedEntry.text || '—'}
+              <Text
+                style={[
+                  styles.sheetText,
+                  { color: theme.text, fontFamily: Fonts.serif },
+                ]}
+              >
+                {selectedEntry.text || "—"}
               </Text>
             </ScrollView>
           </View>
@@ -228,45 +306,62 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     gap: Spacing[2],
   },
-  searchRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing[2] },
+  searchRow: { flexDirection: "row", alignItems: "center", gap: Spacing[2] },
   searchInput: { flex: 1, height: 38 },
   cancelBtn: { paddingVertical: Spacing[1] },
-  filterRow: { flexDirection: 'row', borderRadius: Radii.lg, padding: 3 },
-  filterBtn: { flex: 1, alignItems: 'center', paddingVertical: Spacing[2], borderRadius: Radii.md },
+  filterRow: { flexDirection: "row", borderRadius: Radii.lg, padding: 3 },
+  filterBtn: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: Spacing[2],
+    borderRadius: Radii.md,
+  },
   list: { paddingBottom: Spacing[16] },
-  separator: { height: StyleSheet.hairlineWidth, marginLeft: Spacing[5] + 30 + Spacing[3] },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: Spacing[8] },
-  emptyText: { textAlign: 'center', lineHeight: 22 },
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    marginLeft: Spacing[5] + 30 + Spacing[3],
+  },
+  empty: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: Spacing[8],
+  },
+  emptyText: { textAlign: "center", lineHeight: 22 },
 
   // Sheet
   backdrop: { ...StyleSheet.absoluteFillObject },
   backdropBg: { flex: 1 },
   sheet: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
     borderTopLeftRadius: Radii.xl,
     borderTopRightRadius: Radii.xl,
-    maxHeight: '75%',
-    shadowColor: '#000',
+    maxHeight: "75%",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.1,
     shadowRadius: 20,
     elevation: 10,
   },
-  sheetHandle: { alignItems: 'center', paddingTop: Spacing[3], paddingBottom: Spacing[2] },
+  sheetHandle: {
+    alignItems: "center",
+    paddingTop: Spacing[3],
+    paddingBottom: Spacing[2],
+  },
   handleBar: { width: 36, height: 4, borderRadius: 2 },
   sheetDateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: Spacing[4],
     paddingHorizontal: Spacing[6],
     paddingTop: Spacing[2],
     paddingBottom: Spacing[4],
   },
-  sheetDayNum: { fontSize: 48, lineHeight: 52, fontWeight: '300' },
-  sheetWeekday: { fontSize: 10, fontWeight: '600', letterSpacing: 1.2 },
+  sheetDayNum: { fontSize: 48, lineHeight: 52, fontWeight: "300" },
+  sheetWeekday: { fontSize: 10, fontWeight: "600", letterSpacing: 1.2 },
   sheetMonthYear: { fontSize: 15, marginTop: 2 },
   sheetScroll: { paddingHorizontal: Spacing[6] },
   sheetText: { fontSize: 17, lineHeight: 28, paddingBottom: Spacing[4] },
