@@ -121,17 +121,23 @@ export default function FeedScreen() {
           styles.header,
           {
             backgroundColor: theme.background,
-            borderBottomColor: theme.border,
-            paddingTop: insets.top + Spacing[2],
+            paddingTop: insets.top + Spacing[5],
           },
         ]}
       >
+        <View style={styles.pageHeader}>
+          <Text variant="header">{t("tabs.entries")}</Text>
+          <View style={[styles.headerRule, { backgroundColor: theme.tint }]} />
+        </View>
+
         <View style={styles.searchRow}>
           <TextInput
             style={[
               styles.searchInput,
               {
                 color: theme.text,
+                backgroundColor: theme.surface,
+                borderColor: theme.border,
               },
             ]}
             value={query}
@@ -182,9 +188,13 @@ export default function FeedScreen() {
 
       {listData.length === 0 ? (
         <View style={styles.empty}>
-          <Text type="text" variant="secondary" style={styles.emptyText}>
-            {query ? t("feed.emptySearch") : t("feed.empty")}
-          </Text>
+          <View
+            style={[styles.emptyCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+          >
+            <Text type="text" variant="secondary" style={styles.emptyText}>
+              {query ? t("feed.emptySearch") : t("feed.empty")}
+            </Text>
+          </View>
         </View>
       ) : (
         <FlatList
@@ -193,11 +203,6 @@ export default function FeedScreen() {
           keyExtractor={(item) => item.key}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.list}
-          ItemSeparatorComponent={() => (
-            <View
-              style={[styles.separator, { backgroundColor: theme.border }]}
-            />
-          )}
         />
       )}
 
@@ -223,7 +228,8 @@ export default function FeedScreen() {
             style={[
               styles.sheet,
               {
-                backgroundColor: theme.background,
+                backgroundColor: theme.surface,
+                borderColor: theme.border,
                 paddingBottom: insets.bottom + Spacing[6],
               },
             ]}
@@ -288,30 +294,51 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   header: {
     paddingHorizontal: Spacing[5],
-    paddingBottom: Spacing[3],
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    gap: Spacing[2],
+    paddingBottom: Spacing[4],
+    gap: Spacing[3],
+  },
+  pageHeader: {
+    paddingBottom: Spacing[1],
+  },
+  headerRule: {
+    width: 32,
+    height: 3,
+    borderRadius: 999,
+    marginTop: Spacing[3],
   },
   searchRow: { flexDirection: "row", alignItems: "center", gap: Spacing[2] },
-  searchInput: { flex: 1, height: 38 },
+  searchInput: {
+    flex: 1,
+    height: 48,
+    borderRadius: Radii.xl,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: Spacing[4],
+  },
   cancelBtn: { paddingVertical: Spacing[1] },
-  filterRow: { flexDirection: "row", borderRadius: Radii.lg, padding: 3 },
+  filterRow: { flexDirection: "row", borderRadius: Radii.xl, padding: 4 },
   filterBtn: {
     flex: 1,
     alignItems: "center",
     paddingVertical: Spacing[2],
-    borderRadius: Radii.md,
+    borderRadius: Radii.lg,
   },
-  list: { paddingBottom: Spacing[16] },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-    marginLeft: Spacing[5] + 30 + Spacing[3],
+  list: {
+    paddingHorizontal: Spacing[4],
+    paddingTop: Spacing[1],
+    paddingBottom: Spacing[16],
+    gap: Spacing[2],
   },
   empty: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: Spacing[8],
+  },
+  emptyCard: {
+    borderRadius: Radii.xl,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: Spacing[5],
+    paddingVertical: Spacing[5],
   },
   emptyText: { textAlign: "center", lineHeight: 22 },
 
@@ -325,6 +352,7 @@ const styles = StyleSheet.create({
     right: 0,
     borderTopLeftRadius: Radii.xl,
     borderTopRightRadius: Radii.xl,
+    borderTopWidth: StyleSheet.hairlineWidth,
     maxHeight: "75%",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -4 },

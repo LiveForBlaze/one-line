@@ -1,6 +1,6 @@
 import { MoodDot } from "@/components/MoodDot";
 import { Text } from "@/components/ui/Text";
-import { Spacing } from "@/constants/theme";
+import { Radii, Spacing } from "@/constants/theme";
 import type { Entry } from "@/db/types";
 import { useDateLocale } from "@/hooks/useDateLocale";
 import { useTheme } from "@/hooks/useTheme";
@@ -24,8 +24,11 @@ export function EntryCard({ entry, isPrivateModeOn, onPress }: Props) {
     <Pressable
       style={({ pressed }) => [
         styles.container,
-        isPrivate && { backgroundColor: theme.surfaceElevated },
-        { opacity: pressed && onPress ? 0.6 : 1 },
+        {
+          backgroundColor: isPrivate ? theme.surfaceElevated : theme.surface,
+          borderColor: theme.border,
+          opacity: pressed && onPress ? 0.72 : 1,
+        },
       ]}
       onPress={onPress}
       disabled={!onPress}
@@ -79,13 +82,15 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
+    borderRadius: Radii.lg,
+    borderWidth: StyleSheet.hairlineWidth,
     paddingVertical: Spacing[3] + 2,
-    paddingHorizontal: Spacing[5],
+    paddingHorizontal: Spacing[4],
     gap: Spacing[3],
-    minHeight: 52,
+    minHeight: 68,
   },
   dateCol: { width: 30, alignItems: "center" },
-  dayNum: { fontSize: 19, lineHeight: 22, fontWeight: "400" },
+  dayNum: { fontSize: 24, lineHeight: 26, fontWeight: "300" },
   weekday: { fontSize: 9, fontWeight: "600", letterSpacing: 0.8, marginTop: 1 },
   divider: {
     width: StyleSheet.hairlineWidth,
@@ -93,6 +98,6 @@ const styles = StyleSheet.create({
     marginVertical: 2,
   },
   content: { flex: 1 },
-  entryText: {},
+  entryText: { lineHeight: 24 },
   moodCol: { alignItems: "center", justifyContent: "center", width: 14 },
 });

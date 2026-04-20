@@ -182,12 +182,13 @@ export default function SettingsScreen() {
       style={[styles.container, { backgroundColor: theme.background }]}
       contentContainerStyle={[
         styles.content,
-        { paddingTop: insets.top + Spacing[4] },
+        { paddingTop: insets.top + Spacing[5] },
       ]}
       showsVerticalScrollIndicator={false}
     >
       <View style={styles.pageHeader}>
         <Text variant="header">{t("settings.title")}</Text>
+        <View style={[styles.headerRule, { backgroundColor: theme.tint }]} />
       </View>
 
       <SettingsSection title={t("settings.reminders")}>
@@ -317,6 +318,12 @@ export default function SettingsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { paddingBottom: Spacing[16], gap: Spacing[4] },
+  content: { paddingBottom: Spacing[16], gap: Spacing[5] },
   pageHeader: { paddingHorizontal: Spacing[5], paddingBottom: Spacing[2] },
+  headerRule: {
+    width: 32,
+    height: 3,
+    borderRadius: 999,
+    marginTop: Spacing[3],
+  },
 });

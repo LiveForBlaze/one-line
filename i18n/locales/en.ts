@@ -6,7 +6,7 @@ export default {
   },
   today: {
     placeholder: "How was today?",
-    common: "Common",
+    common: "Open",
     private: "Private",
     saved: "Saved",
   },
@@ -14,7 +14,7 @@ export default {
     search: "Search entries…",
     cancel: "Cancel",
     filterAll: "All",
-    filterCommon: "Common",
+    filterCommon: "Open",
     filterPrivate: "Private",
     empty: "No entries yet.\nStart writing today.",
     emptySearch: "No entries found",

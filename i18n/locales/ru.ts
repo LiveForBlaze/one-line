@@ -6,7 +6,7 @@ export default {
   },
   today: {
     placeholder: "Как прошёл день?",
-    common: "Обычная",
+    common: "Открытая",
     private: "Личная",
     saved: "Сохранено",
   },
@@ -14,7 +14,7 @@ export default {
     search: "Поиск по записям…",
     cancel: "Отмена",
     filterAll: "Все",
-    filterCommon: "Обычные",
+    filterCommon: "Открытые",
     filterPrivate: "Личные",
     empty: "Записей пока нет.\nНачни писать сегодня.",
     emptySearch: "Ничего не найдено",

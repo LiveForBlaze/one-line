@@ -16,7 +16,10 @@ function TabLabel({ label, focused }: { label: string; focused: boolean }) {
         type="label"
         style={[
           styles.tabText,
-          { color: focused ? theme.tint : theme.tabIconDefault },
+          {
+            color: focused ? theme.tint : theme.tabIconDefault,
+            opacity: focused ? 1 : 0.82,
+          },
         ]}
       >
         {label}
@@ -46,10 +49,15 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: theme.tabBar,
           borderTopColor: theme.tabBarBorder,
+          borderTopWidth: StyleSheet.hairlineWidth,
           elevation: 0,
           shadowOpacity: 0,
-          paddingTop: 16,
-          height: 46 + insets.bottom,
+          height: 54 + insets.bottom,
+          paddingTop: 10,
+          paddingBottom: insets.bottom + 2,
+        },
+        tabBarItemStyle: {
+          paddingTop: 2,
         },
         tabBarIconStyle: {
           width: "100%",
@@ -91,14 +99,14 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    gap: 5,
+    gap: 6,
   },
   tabText: {
-    letterSpacing: 0.1,
+    letterSpacing: 0.15,
   },
   line: {
-    width: 20,
+    width: 24,
     height: 2,
-    borderRadius: 1,
+    borderRadius: 999,
   },
 });

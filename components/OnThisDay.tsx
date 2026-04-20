@@ -24,7 +24,10 @@ export function OnThisDay({ entries, isPrivateModeOn }: Props) {
 
   return (
     <View
-      style={[styles.container, { backgroundColor: theme.surfaceElevated }]}
+      style={[
+        styles.container,
+        { backgroundColor: theme.surface, borderColor: theme.border },
+      ]}
     >
       <View style={[styles.accentBar, { backgroundColor: theme.tint }]} />
       <View style={styles.inner}>
@@ -68,14 +71,15 @@ const styles = StyleSheet.create({
     borderRadius: Radii.xl,
     flexDirection: "row",
     overflow: "hidden",
+    borderWidth: StyleSheet.hairlineWidth,
   },
   accentBar: { width: 3 },
-  inner: { flex: 1, padding: Spacing[4], gap: Spacing[1] },
+  inner: { flex: 1, padding: Spacing[5], gap: Spacing[1] },
   headerLabel: {
     letterSpacing: 1.4,
-    marginBottom: Spacing[2],
+    marginBottom: Spacing[3],
   },
-  item: { marginBottom: Spacing[3] },
-  yearsLabel: { marginBottom: 3 },
+  item: { marginBottom: Spacing[4] },
+  yearsLabel: { marginBottom: 4 },
   entryText: {},
 });

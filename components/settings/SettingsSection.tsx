@@ -87,14 +87,14 @@ export function SettingsRow({
 }
 
 const styles = StyleSheet.create({
-  section: { paddingHorizontal: Spacing[4], gap: Spacing[1] },
+  section: { paddingHorizontal: Spacing[4], gap: Spacing[2] },
   sectionTitle: {
     paddingHorizontal: Spacing[2],
+    letterSpacing: 1,
     marginBottom: Spacing[1],
-    letterSpacing: 0.6,
   },
   sectionBody: {
-    borderRadius: Radii.lg,
+    borderRadius: Radii.xl,
     borderWidth: StyleSheet.hairlineWidth,
     overflow: "hidden",
   },
@@ -103,8 +103,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: Spacing[4],
-    paddingVertical: Spacing[3] + 2,
-    minHeight: 44,
+    paddingVertical: Spacing[4] + 1,
+    minHeight: 56,
     gap: Spacing[2],
   },
   rowLabel: { flex: 1, gap: 2 },

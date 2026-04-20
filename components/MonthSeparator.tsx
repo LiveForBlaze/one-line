@@ -1,10 +1,10 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { format, parseISO } from 'date-fns';
-import { Text } from '@/components/ui/Text';
-import { useTheme } from '@/hooks/useTheme';
-import { useDateLocale } from '@/hooks/useDateLocale';
-import { Spacing } from '@/constants/theme';
+import { Text } from "@/components/ui/Text";
+import { Spacing } from "@/constants/theme";
+import { useDateLocale } from "@/hooks/useDateLocale";
+import { useTheme } from "@/hooks/useTheme";
+import { format, parseISO } from "date-fns";
+import React from "react";
+import { StyleSheet, View } from "react-native";
 
 export function MonthSeparator({ dateStr }: { dateStr: string }) {
   const theme = useTheme();
@@ -12,10 +12,14 @@ export function MonthSeparator({ dateStr }: { dateStr: string }) {
   const date = parseISO(dateStr);
 
   return (
-    <View style={[styles.container, { borderBottomColor: theme.border }]}>
-      <Text variant="label" secondary>
-        {(() => { const s = format(date, 'LLLL yyyy', { locale }); return s.charAt(0).toUpperCase() + s.slice(1); })()}
+    <View style={styles.container}>
+      <Text type="label" variant="secondary" style={styles.label}>
+        {(() => {
+          const s = format(date, "LLLL yyyy", { locale });
+          return s.charAt(0).toUpperCase() + s.slice(1);
+        })()}
       </Text>
+      <View style={[styles.rule, { backgroundColor: theme.border }]} />
     </View>
   );
 }
@@ -24,7 +28,9 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: Spacing[4],
     paddingTop: Spacing[6],
-    paddingBottom: Spacing[2],
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingBottom: Spacing[3],
+    gap: Spacing[2],
   },
+  label: { letterSpacing: 0.6, fontWeight: "600" },
+  rule: { height: StyleSheet.hairlineWidth },
 });
