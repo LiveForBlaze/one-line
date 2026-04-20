@@ -73,9 +73,7 @@ export function ThemePickerModal({
                 ]}
                 onPress={() => onSelect(item.code)}
               >
-                <Text type="text">
-                  {item.label}
-                </Text>
+                <Text type="text">{item.label}</Text>
                 {isActive && (
                   <Text type="text" variant="accent">
                     ✓

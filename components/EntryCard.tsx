@@ -39,11 +39,7 @@ export function EntryCard({ entry, isPrivateModeOn, onPress }: Props) {
         >
           {format(date, "d", { locale })}
         </Text>
-        <Text
-          type="caption"
-          variant="tertiary"
-          style={styles.weekday}
-        >
+        <Text type="caption" variant="tertiary" style={styles.weekday}>
           {format(date, "EEE", { locale }).toUpperCase()}
         </Text>
       </View>
@@ -63,11 +59,7 @@ export function EntryCard({ entry, isPrivateModeOn, onPress }: Props) {
             {entry.text}
           </Text>
         ) : (
-          <Text
-            type="text"
-            variant="tertiary"
-            style={styles.entryText}
-          >
+          <Text type="text" variant="tertiary" style={styles.entryText}>
             —
           </Text>
         )}

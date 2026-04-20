@@ -1,91 +1,130 @@
 import { PinKeypad } from "@/components/PinKeypad";
-import { RecoveryKeyModal } from "@/components/settings/RecoveryKeyModal";
 import { Text } from "@/components/ui/Text";
 import { Spacing } from "@/constants/theme";
 import { useT } from "@/hooks/useT";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/auth";
-import { useRouter } from "expo-router";
+import { useRecoveryModalStore } from "@/store/recovery-modal";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Clipboard, Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type Step = "enter" | "confirm" | "recovery";
+type Step = "current" | "new" | "confirm";
 
 export default function PinSetupScreen() {
   const theme = useTheme();
   const { t } = useT();
   const router = useRouter();
+  const params = useLocalSearchParams<{ mode?: string }>();
   const auth = useAuthStore();
   const insets = useSafeAreaInsets();
+  const setPendingRecoveryKey = useRecoveryModalStore(
+    (state) => state.setRecoveryKey,
+  );
+  const mode = params.mode === "change" ? "change" : "create";
+  const isChangeMode = mode === "change";
+  const verticalInset = Math.max(insets.top, insets.bottom) + Spacing[4];
 
-  const [step, setStep] = useState<Step>("enter");
-  const [firstPin, setFirstPin] = useState("");
-  const [recoveryKey, setRecoveryKey] = useState("");
+  const [step, setStep] = useState<Step>(isChangeMode ? "current" : "new");
+  const [nextPin, setNextPin] = useState("");
   const [error, setError] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [errorLabel, setErrorLabel] = useState<string | undefined>(undefined);
 
-  const handleCopy = () => {
-    Clipboard.setString(recoveryKey);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const showError = (label: string, onReset?: () => void) => {
+    setErrorLabel(label);
+    setError(true);
+    setTimeout(() => {
+      setError(false);
+      setErrorLabel(undefined);
+      onReset?.();
+    }, 700);
   };
 
-  const handleFirst = (pin: string) => {
-    setFirstPin(pin);
+  const handleCurrentPin = async (pin: string) => {
+    const isValid = await auth.verifyPin(pin);
+
+    if (!isValid) {
+      showError(t("pin.currentInvalid"));
+      return;
+    }
+
+    setStep("new");
+  };
+
+  const handleNewPin = (pin: string) => {
+    setNextPin(pin);
     setStep("confirm");
   };
 
   const handleConfirm = async (pin: string) => {
-    if (pin !== firstPin) {
-      setError(true);
-      setTimeout(() => {
-        setError(false);
-        setStep("enter");
-        setFirstPin("");
-      }, 700);
+    if (pin !== nextPin) {
+      showError(t("pin.mismatch"), () => {
+        setStep("new");
+        setNextPin("");
+      });
       return;
     }
+
+    if (isChangeMode) {
+      await auth.changePrivatePin(pin);
+      router.back();
+      return;
+    }
+
     const key = await auth.setupPrivatePin(pin);
-    setRecoveryKey(key);
-    setStep("recovery");
+    setPendingRecoveryKey(key);
+    router.replace("/pin/recovery");
   };
 
-  if (step === "recovery") {
-    return (
-      <RecoveryKeyModal
-        useModal={false}
-        topInset={insets.top}
-        bottomInset={insets.bottom}
-        recoveryKey={recoveryKey}
-        copied={copied}
-        title={t("pin.recoveryTitle")}
-        subtitle={t("pin.recoverySub")}
-        actionLabel={t("pin.recoverySaved")}
-        onCopy={handleCopy}
-        onAction={() => router.back()}
-      />
-    );
-  }
-
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: theme.background,
+          paddingTop: verticalInset,
+        },
+      ]}
+    >
       <View style={styles.handle}>
         <View style={[styles.handleBar, { backgroundColor: theme.border }]} />
       </View>
       <View style={styles.content}>
         <Text type="subheader" style={styles.title}>
-          {step === "enter" ? t("pin.create") : t("pin.confirm")}
+          {step === "current"
+            ? t("pin.enterCurrent")
+            : step === "new"
+              ? isChangeMode
+                ? t("pin.change")
+                : t("pin.create")
+              : isChangeMode
+                ? t("pin.confirmNew")
+                : t("pin.confirm")}
         </Text>
         <Text type="text" variant="secondary" style={styles.subtitle}>
-          {step === "enter" ? t("pin.createSub") : t("pin.confirmSub")}
+          {step === "current"
+            ? t("pin.enterCurrentSub")
+            : step === "new"
+              ? isChangeMode
+                ? t("pin.changeSub")
+                : t("pin.createSub")
+              : isChangeMode
+                ? t("pin.confirmNewSub")
+                : t("pin.confirmSub")}
         </Text>
 
         <View style={styles.keypad}>
           <PinKeypad
-            onComplete={step === "enter" ? handleFirst : handleConfirm}
+            onComplete={
+              step === "current"
+                ? handleCurrentPin
+                : step === "new"
+                  ? handleNewPin
+                  : handleConfirm
+            }
             error={error}
-            label={error ? t("pin.mismatch") : undefined}
+            label={error ? errorLabel : undefined}
           />
         </View>
       </View>
@@ -93,10 +132,7 @@ export default function PinSetupScreen() {
       <Pressable
         style={({ pressed }) => [
           styles.cancelBtn,
-          {
-            paddingBottom: insets.bottom + Spacing[4],
-            opacity: pressed ? 0.6 : 1,
-          },
+          { opacity: pressed ? 0.6 : 1 },
         ]}
         onPress={() => router.back()}
       >
@@ -112,14 +148,13 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   handle: {
     alignItems: "center",
-    paddingTop: Spacing[3],
     paddingBottom: Spacing[2],
   },
   handleBar: { width: 36, height: 4, borderRadius: 2 },
   content: {
     flex: 1,
     alignItems: "center",
-    paddingTop: Spacing[10],
+    justifyContent: "center",
     gap: Spacing[2],
   },
   title: { marginBottom: Spacing[1] },

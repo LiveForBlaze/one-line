@@ -20,11 +20,14 @@ function getRandomBytes(length: number): Uint8Array {
 export function generateRecoveryPhrase(): string {
   const bytes = getRandomBytes(RECOVERY_PHRASE_WORD_COUNT * 2);
 
-  const words = Array.from({ length: RECOVERY_PHRASE_WORD_COUNT }, (_, index) => {
-    const offset = index * 2;
-    const value = (bytes[offset] << 8) | bytes[offset + 1];
-    return wordlist[value & WORDLIST_MASK];
-  });
+  const words = Array.from(
+    { length: RECOVERY_PHRASE_WORD_COUNT },
+    (_, index) => {
+      const offset = index * 2;
+      const value = (bytes[offset] << 8) | bytes[offset + 1];
+      return wordlist[value & WORDLIST_MASK];
+    },
+  );
 
   return words.join(" ");
 }

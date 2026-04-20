@@ -1,30 +1,17 @@
 import { PinKeypad } from "@/components/PinKeypad";
-import { RecoveryKeyModal } from "@/components/settings/RecoveryKeyModal";
 import { Text } from "@/components/ui/Text";
 import { Radii, Spacing } from "@/constants/theme";
 import { useT } from "@/hooks/useT";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/auth";
 import { useSettingsStore } from "@/store/settings";
-import { normalizeRecoveryPhrase } from "../utils/recovery-phrase";
 import * as LocalAuthentication from "expo-local-authentication";
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  Clipboard,
-  Modal,
-  Pressable,
-  StyleSheet,
-  TextInput,
-  View,
-} from "react-native";
+import { Modal, Pressable, StyleSheet, TextInput, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
+import { normalizeRecoveryPhrase } from "../utils/recovery-phrase";
 
-type View_ =
-  | "pin"
-  | "recovery-key"
-  | "new-pin"
-  | "confirm-pin"
-  | "new-recovery-key";
+type View_ = "pin" | "recovery-key" | "new-pin" | "confirm-pin";
 
 interface Props {
   visible: boolean;
@@ -54,14 +41,6 @@ export function PinGate({ visible, onUnlocked, onCancel }: Props) {
   const [recoveryInput, setRecoveryInput] = useState("");
   const [recoveryError, setRecoveryError] = useState(false);
   const [newPin, setNewPin] = useState("");
-  const [newRecoveryKey, setNewRecoveryKey] = useState("");
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = useCallback(() => {
-    Clipboard.setString(newRecoveryKey);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }, [newRecoveryKey]);
 
   // Reset to PIN view when modal closes
   useEffect(() => {
@@ -70,6 +49,7 @@ export function PinGate({ visible, onUnlocked, onCancel }: Props) {
       setRecoveryInput("");
       setRecoveryError(false);
       setNewPin("");
+      setPinError(false);
     }
   }, [visible]);
 
@@ -137,31 +117,13 @@ export function PinGate({ visible, onUnlocked, onCancel }: Props) {
         }, 700);
         return;
       }
-      const newKey = await resetPinWithRecoveryKey(recoveryInput, pin);
-      if (newKey) {
-        setNewRecoveryKey(newKey);
-        setCopied(false);
-        setView("new-recovery-key");
+      const didReset = await resetPinWithRecoveryKey(recoveryInput, pin);
+      if (didReset) {
+        onUnlocked();
       }
     },
-    [newPin, recoveryInput, resetPinWithRecoveryKey],
+    [newPin, onUnlocked, recoveryInput, resetPinWithRecoveryKey],
   );
-
-  // ── Show new recovery key after reset ───────────────────────────────────
-  if (view === "new-recovery-key") {
-    return (
-      <RecoveryKeyModal
-        visible={visible}
-        recoveryKey={newRecoveryKey}
-        copied={copied}
-        title={t("pin.recoveryTitle")}
-        subtitle={t("pin.recoverySub")}
-        actionLabel={t("pin.recoverySaved")}
-        onCopy={handleCopy}
-        onAction={onUnlocked}
-      />
-    );
-  }
 
   // ── Recovery key entry view ──────────────────────────────────────────────
   if (view === "recovery-key") {

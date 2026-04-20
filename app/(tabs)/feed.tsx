@@ -237,20 +237,24 @@ export default function FeedScreen() {
 
             {/* Date */}
             <View style={styles.sheetDateRow}>
-              <Text
-                type="header"
-                variant="accent"
-                style={styles.sheetDayNum}
-              >
+              <Text type="header" variant="accent" style={styles.sheetDayNum}>
                 {format(parseISO(selectedEntry.date), "d", { locale })}
               </Text>
               <View>
-                <Text type="overline" variant="tertiary" style={styles.sheetWeekday}>
+                <Text
+                  type="overline"
+                  variant="tertiary"
+                  style={styles.sheetWeekday}
+                >
                   {format(parseISO(selectedEntry.date), "EEEE", {
                     locale,
                   }).toUpperCase()}
                 </Text>
-                <Text type="text" variant="secondary" style={styles.sheetMonthYear}>
+                <Text
+                  type="text"
+                  variant="secondary"
+                  style={styles.sheetMonthYear}
+                >
                   {(() => {
                     const s = format(
                       parseISO(selectedEntry.date),

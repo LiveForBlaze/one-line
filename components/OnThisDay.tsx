@@ -28,11 +28,7 @@ export function OnThisDay({ entries, isPrivateModeOn }: Props) {
     >
       <View style={[styles.accentBar, { backgroundColor: theme.tint }]} />
       <View style={styles.inner}>
-        <Text
-          type="caption"
-          variant="tertiary"
-          style={styles.headerLabel}
-        >
+        <Text type="caption" variant="tertiary" style={styles.headerLabel}>
           {t("onThisDay.label")}
         </Text>
         {visible.map((entry) => {

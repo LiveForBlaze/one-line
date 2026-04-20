@@ -229,7 +229,7 @@ export default function SettingsScreen() {
         onEnterPrivateMode={() => setShowUnlockGate(true)}
         onExitPrivateMode={() => auth.lockPrivate()}
         onToggleBiometrics={handleBiometricsToggle}
-        onChangePin={() => router.push("/pin/setup")}
+        onChangePin={() => router.push("/pin/setup?mode=change")}
         onRegenerateRecoveryKey={handleRegenerateRecoveryKey}
       />
 
@@ -276,8 +276,14 @@ export default function SettingsScreen() {
         subtitle={t("settings.newRecoveryKeyMessage")}
         actionLabel={t("pin.recoverySaved")}
         onCopy={handleCopyRecoveryKey}
-        onAction={() => setShowRecoveryKeyModal(false)}
-        onClose={() => setShowRecoveryKeyModal(false)}
+        onAction={() => {
+          setShowRecoveryKeyModal(false);
+          setNewRecoveryKey("");
+        }}
+        onClose={() => {
+          setShowRecoveryKeyModal(false);
+          setNewRecoveryKey("");
+        }}
       />
 
       <TimePickerModal

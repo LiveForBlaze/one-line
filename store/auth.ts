@@ -20,17 +20,18 @@ interface AuthState {
   hasPrivatePin: () => Promise<boolean>;
   /** Creates PIN + recovery key. Returns the plaintext recovery key to show once. */
   setupPrivatePin: (pin: string) => Promise<string>;
+  changePrivatePin: (pin: string) => Promise<void>;
   verifyPin: (pin: string) => Promise<boolean>;
   unlockWithBiometrics: () => Promise<boolean>;
   lockPrivate: () => void;
   isRateLimited: () => boolean;
   remainingLockSeconds: () => number;
   verifyRecoveryKey: (key: string) => Promise<boolean>;
-  /** Resets PIN using a valid recovery phrase. Returns new recovery phrase to show once. */
+  /** Resets PIN using a valid recovery phrase and keeps that phrase unchanged. */
   resetPinWithRecoveryKey: (
     recoveryKey: string,
     newPin: string,
-  ) => Promise<string | null>;
+  ) => Promise<boolean>;
   /** Re-generates recovery phrase (call only when private mode is already ON). Returns new phrase. */
   regenerateRecoveryKey: () => Promise<string>;
 }
@@ -50,6 +51,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     await SecureStore.setItemAsync(RECOVERY_KEY_KEY, recoveryKey);
     set({ isPrivateModeOn: true, attempts: 0, lockedUntil: null });
     return recoveryKey;
+  },
+
+  async changePrivatePin(pin: string) {
+    await SecureStore.setItemAsync(PRIVATE_PIN_KEY, pin);
+    set({ isPrivateModeOn: true, attempts: 0, lockedUntil: null });
   },
 
   async verifyPin(pin: string) {
@@ -104,12 +110,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   async resetPinWithRecoveryKey(recoveryKey: string, newPin: string) {
     const valid = await get().verifyRecoveryKey(recoveryKey);
-    if (!valid) return null;
-    const newKey = generateRecoveryPhrase();
+    if (!valid) return false;
     await SecureStore.setItemAsync(PRIVATE_PIN_KEY, newPin);
-    await SecureStore.setItemAsync(RECOVERY_KEY_KEY, newKey);
     set({ isPrivateModeOn: true, attempts: 0, lockedUntil: null });
-    return newKey;
+    return true;
   },
 
   async regenerateRecoveryKey() {

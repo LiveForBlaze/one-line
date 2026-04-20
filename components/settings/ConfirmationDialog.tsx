@@ -63,7 +63,10 @@ export function ConfirmationDialog({
               ]}
               onPress={onConfirm}
             >
-              <Text type="action" style={[styles.primaryButtonText, { color: "#fff" }]}>
+              <Text
+                type="action"
+                style={[styles.primaryButtonText, { color: "#fff" }]}
+              >
                 {confirmLabel}
               </Text>
             </Pressable>

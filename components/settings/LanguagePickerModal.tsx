@@ -75,9 +75,7 @@ export function LanguagePickerModal({
                 onPress={() => onSelect(item.code)}
               >
                 <View style={styles.langLabel}>
-                  <Text type="text">
-                    {item.native}
-                  </Text>
+                  <Text type="text">{item.native}</Text>
                   <Text
                     type="caption"
                     variant="secondary"

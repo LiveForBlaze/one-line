@@ -46,11 +46,10 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: theme.tabBar,
           borderTopColor: theme.tabBarBorder,
-          borderTopWidth: StyleSheet.hairlineWidth,
           elevation: 0,
           shadowOpacity: 0,
-          height: 56 + insets.bottom,
-          paddingBottom: insets.bottom,
+          paddingTop: 16,
+          height: 46 + insets.bottom,
         },
         tabBarIconStyle: {
           width: "100%",

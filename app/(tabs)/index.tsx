@@ -129,11 +129,7 @@ export default function TodayScreen() {
             <Text type="display" style={styles.monthDay}>
               {monthDay}
             </Text>
-            <Text
-              type="text"
-              variant="secondary"
-              style={styles.year}
-            >
+            <Text type="text" variant="secondary" style={styles.year}>
               {year}
             </Text>
           </View>

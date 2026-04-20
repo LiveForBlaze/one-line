@@ -2,10 +2,10 @@ import { Text } from "@/components/ui/Text";
 import { Radii, Spacing } from "@/constants/theme";
 import { useT } from "@/hooks/useT";
 import { useTheme } from "@/hooks/useTheme";
-import { splitRecoveryPhrase } from "../../utils/recovery-phrase";
 import React from "react";
 import { Modal, Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { splitRecoveryPhrase } from "../../utils/recovery-phrase";
 
 interface RecoveryKeyModalProps {
   visible?: boolean;
@@ -79,7 +79,10 @@ export function RecoveryKeyModal({
             </View>
 
             <View
-              style={[styles.keyCard, { backgroundColor: theme.surfaceElevated }]}
+              style={[
+                styles.keyCard,
+                { backgroundColor: theme.surfaceElevated },
+              ]}
             >
               <Text type="overline" variant="tertiary" style={styles.keyLabel}>
                 {t("pin.recoveryKeyLabel")}
@@ -134,7 +137,9 @@ export function RecoveryKeyModal({
                 style={({ pressed }) => [
                   styles.copyButton,
                   {
-                    backgroundColor: copied ? theme.tintBackground : theme.surface,
+                    backgroundColor: copied
+                      ? theme.tintBackground
+                      : theme.surface,
                     borderColor: copied ? theme.tint : theme.border,
                     opacity: pressed ? 0.7 : 1,
                   },
@@ -160,7 +165,10 @@ export function RecoveryKeyModal({
             ]}
             onPress={onAction}
           >
-            <Text type="action" style={[styles.doneButtonText, { color: "#fff" }]}>
+            <Text
+              type="action"
+              style={[styles.doneButtonText, { color: "#fff" }]}
+            >
               {actionLabel}
             </Text>
           </Pressable>
@@ -217,8 +225,7 @@ const styles = StyleSheet.create({
     gap: Spacing[3],
     alignItems: "center",
   },
-  keyLabel: {
-  },
+  keyLabel: {},
   keyGrid: {
     width: "100%",
     gap: Spacing[2],
