@@ -1,53 +1,120 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
 import { Platform } from 'react-native';
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+export const Palette = {
+  amber: '#C8933A',
+  amberLight: '#F5EDD9',
+  amberDark: '#D4A84B',
+  amberDarkBg: '#2A2217',
+  green: '#6BAE75',
+  greenDark: '#5A9E64',
+  orange: '#E8A870',
+  orangeDark: '#D4956A',
+  gray: '#A8A49F',
+  grayDark: '#807C77',
+} as const;
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+    background: '#FAFAF8',
+    surface: '#FFFFFF',
+    surfaceElevated: '#F5F3F0',
+    text: '#1A1917',
+    textSecondary: '#6B6760',
+    textTertiary: '#A8A49F',
+    border: '#E5E3DF',
+    borderStrong: '#C8C4BE',
+    tint: Palette.amber,
+    tintBackground: Palette.amberLight,
+    positive: Palette.green,
+    neutral: Palette.gray,
+    challenging: Palette.orange,
+    tabBar: '#FFFFFF',
+    tabBarBorder: '#E5E3DF',
+    tabIconDefault: '#A8A49F',
+    tabIconSelected: Palette.amber,
+    icon: '#A8A49F',
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+    background: '#141413',
+    surface: '#1E1E1C',
+    surfaceElevated: '#252522',
+    text: '#F0EDE8',
+    textSecondary: '#8A8681',
+    textTertiary: '#5A5753',
+    border: '#2A2927',
+    borderStrong: '#3A3835',
+    tint: Palette.amberDark,
+    tintBackground: Palette.amberDarkBg,
+    positive: Palette.greenDark,
+    neutral: Palette.grayDark,
+    challenging: Palette.orangeDark,
+    tabBar: '#1A1917',
+    tabBarBorder: '#2A2927',
+    tabIconDefault: '#5A5753',
+    tabIconSelected: Palette.amberDark,
+    icon: '#5A5753',
   },
-};
+} as const;
+
+export type ColorScheme = 'light' | 'dark';
 
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
+    sans: 'System',
+    serif: 'Georgia',
     rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
     mono: 'ui-monospace',
   },
-  default: {
-    sans: 'normal',
+  android: {
+    sans: 'sans-serif',
     serif: 'serif',
-    rounded: 'normal',
+    rounded: 'sans-serif',
     mono: 'monospace',
   },
-  web: {
-    sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-    serif: "Georgia, 'Times New Roman', serif",
-    rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
-    mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+  default: {
+    sans: 'System',
+    serif: 'Georgia',
+    rounded: 'System',
+    mono: 'monospace',
   },
-});
+})!;
+
+export const FontSizes = {
+  xs: 11,
+  sm: 13,
+  base: 15,
+  md: 17,
+  lg: 20,
+  xl: 24,
+  '2xl': 28,
+  '3xl': 34,
+} as const;
+
+export const FontWeights = {
+  regular: '400' as const,
+  medium: '500' as const,
+  semibold: '600' as const,
+  bold: '700' as const,
+};
+
+export const Spacing = {
+  1: 4,
+  2: 8,
+  3: 12,
+  4: 16,
+  5: 20,
+  6: 24,
+  7: 28,
+  8: 32,
+  10: 40,
+  12: 48,
+  16: 64,
+} as const;
+
+export const Radii = {
+  sm: 6,
+  md: 10,
+  lg: 16,
+  xl: 24,
+  full: 9999,
+} as const;

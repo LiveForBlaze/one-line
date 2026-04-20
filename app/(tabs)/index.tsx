@@ -1,98 +1,239 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  View,
+  TextInput,
+  StyleSheet,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from 'expo-router';
+import { format } from 'date-fns';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import { Text } from '@/components/ui/Text';
+import { OnThisDay } from '@/components/OnThisDay';
+import { useTheme } from '@/hooks/useTheme';
+import { useDateLocale } from '@/hooks/useDateLocale';
+import { useEntriesStore } from '@/store/entries';
+import { useAuthStore } from '@/store/auth';
+import { Fonts, FontSizes, Spacing, Radii } from '@/constants/theme';
+import { useT } from '@/hooks/useT';
+import type { EntryKind } from '@/db/types';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+const SOFT_LIMIT = 200;
 
-export default function HomeScreen() {
+export default function TodayScreen() {
+  const theme = useTheme();
+  const locale = useDateLocale();
+  const insets = useSafeAreaInsets();
+  const { t } = useT();
+  const { todayCommon, todayPrivate, onThisDay, loadToday, loadOnThisDay, saveEntry } = useEntriesStore();
+  const { isPrivateModeOn } = useAuthStore();
+
+  const [activeKind, setActiveKind] = useState<EntryKind>('common');
+  const [commonText, setCommonText] = useState('');
+  const [privateText, setPrivateText] = useState('');
+  const [isSaved, setIsSaved] = useState(false);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const today = new Date();
+  const dayOfWeek = format(today, 'EEEE', { locale }).toUpperCase();
+  const monthRaw = format(today, 'LLLL', { locale });
+  const month = monthRaw.charAt(0).toUpperCase() + monthRaw.slice(1);
+  const monthDay = `${month} ${format(today, 'd', { locale })}`;
+  const year = format(today, 'yyyy', { locale });
+
+  // Reset to common tab when leaving private mode
+  useEffect(() => {
+    if (!isPrivateModeOn) setActiveKind('common');
+  }, [isPrivateModeOn]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadToday();
+      loadOnThisDay(today, isPrivateModeOn);
+    }, [isPrivateModeOn]),
+  );
+
+  useEffect(() => {
+    setCommonText(todayCommon?.text ?? '');
+  }, [todayCommon]);
+
+  useEffect(() => {
+    setPrivateText(todayPrivate?.text ?? '');
+  }, [todayPrivate]);
+
+  const activeText = activeKind === 'common' ? commonText : privateText;
+  const setActiveText = activeKind === 'common' ? setCommonText : setPrivateText;
+
+  const triggerSave = useCallback((kind: EntryKind, text: string) => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      saveEntry(text, kind);
+      setIsSaved(true);
+      setTimeout(() => setIsSaved(false), 2000);
+    }, 600);
+  }, [saveEntry]);
+
+  const handleChangeText = useCallback((val: string) => {
+    setActiveText(val);
+    setIsSaved(false);
+    triggerSave(activeKind, val);
+  }, [activeKind, setActiveText, triggerSave]);
+
+  const isNearLimit = activeText.length >= SOFT_LIMIT - 20;
+  const isOverLimit = activeText.length > SOFT_LIMIT;
+  const charCountColor = isOverLimit ? theme.challenging : isNearLimit ? theme.tint : theme.textTertiary;
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <KeyboardAvoidingView
+      style={[styles.flex, { backgroundColor: theme.background }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={20}
+    >
+      <ScrollView
+        contentContainerStyle={[styles.scroll, { paddingTop: insets.top + Spacing[6] }]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Date header */}
+        <View style={styles.header}>
+          <Text variant="caption" style={[styles.dayOfWeek, { color: theme.textTertiary }]}>
+            {dayOfWeek}
+          </Text>
+          <View style={styles.dateRow}>
+            <Text style={[styles.monthDay, { color: theme.text, fontFamily: Fonts.serif }]}>
+              {monthDay}
+            </Text>
+            <Text variant="label" style={[styles.year, { color: theme.textSecondary }]}>
+              {year}
+            </Text>
+          </View>
+          <View style={[styles.accentLine, { backgroundColor: theme.tint }]} />
+        </View>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        {/* Segmented control — only visible in Private Mode */}
+        {isPrivateModeOn && (
+          <View style={[styles.segmented, { backgroundColor: theme.surfaceElevated }]}>
+            {(['common', 'private'] as EntryKind[]).map((kind) => {
+              const active = activeKind === kind;
+              return (
+                <Pressable
+                  key={kind}
+                  onPress={() => setActiveKind(kind)}
+                  style={[
+                    styles.segBtn,
+                    active && { backgroundColor: theme.surface },
+                  ]}
+                >
+                  <Text
+                    variant="label"
+                    style={{ color: active ? theme.text : theme.textTertiary }}
+                  >
+                    {kind === 'common' ? t('today.common') : t('today.private')}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        )}
+
+        {/* Entry card */}
+        <View style={[styles.card, { backgroundColor: theme.surface, shadowColor: theme.text }]}>
+          <TextInput
+            style={[styles.input, { color: theme.text, fontFamily: Fonts.serif, fontSize: FontSizes.md }]}
+            value={activeText}
+            onChangeText={handleChangeText}
+            placeholder={t('today.placeholder')}
+            placeholderTextColor={theme.textTertiary}
+            multiline
+            maxLength={500}
+            textAlignVertical="top"
+            scrollEnabled={false}
+            autoCorrect
+            autoCapitalize="sentences"
+          />
+
+          <View style={[styles.cardFooter, { borderTopColor: theme.border }]}>
+            <View style={styles.statusRow}>
+              {isSaved && (
+                <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(300)}>
+                  <Text variant="caption" style={{ color: theme.positive }}>
+                    {t('today.saved')}
+                  </Text>
+                </Animated.View>
+              )}
+            </View>
+            {(isNearLimit || activeText.length > 0) && (
+              <Text variant="caption" style={{ color: charCountColor }}>
+                {activeText.length}
+                {isOverLimit ? `\u202F/\u202F${SOFT_LIMIT}` : ''}
+              </Text>
+            )}
+          </View>
+        </View>
+
+        <OnThisDay entries={onThisDay} isPrivateModeOn={isPrivateModeOn} />
+
+        <View style={{ height: insets.bottom + Spacing[8] }} />
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  flex: { flex: 1 },
+  scroll: { paddingHorizontal: Spacing[5] },
+  header: { marginBottom: Spacing[7] },
+  dayOfWeek: { letterSpacing: 1.5, marginBottom: Spacing[1] },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: Spacing[2],
+    marginBottom: Spacing[4],
+  },
+  monthDay: { fontSize: 32, lineHeight: 38, fontWeight: '400', letterSpacing: -0.5 },
+  year: { fontSize: FontSizes.base, opacity: 0.6 },
+  accentLine: { width: 28, height: 2, borderRadius: 1 },
+  segmented: {
+    flexDirection: 'row',
+    borderRadius: Radii.lg,
+    padding: 3,
+    marginBottom: Spacing[4],
+  },
+  segBtn: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: Spacing[2],
+    borderRadius: Radii.md,
+  },
+  card: {
+    borderRadius: Radii.xl,
+    overflow: 'hidden',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+    elevation: 2,
+  },
+  input: {
+    minHeight: 140,
+    padding: Spacing[5],
+    paddingTop: Spacing[5],
+    lineHeight: 28,
+  },
+  cardFooter: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing[5],
+    paddingVertical: Spacing[3],
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing[2],
   },
 });

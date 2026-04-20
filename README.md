@@ -1,50 +1,117 @@
-# Welcome to your Expo app 👋
+# OneLine — One Line a Day
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A minimalist diary app. One line per day. No more.  
+After a year — 365 lines of your life. After five years — a book.
 
-## Get started
+## Features
 
-1. Install dependencies
+### MVP (current)
+- **Daily entry** — one text field, auto-saves as you type, soft 200-char limit
+- **Private entries** — toggle marks an entry as private; it shows as a blank day in the feed (no indicator), unlocked by PIN or biometrics
+- **On This Day** — below today's entry, see what you wrote 1, 2, 3... years ago on the same date
+- **Feed** — scrollable history with month separators, mood dots, and full-text search
+- **Mood scoring** — local dictionary-based sentiment analysis (positive / neutral / challenging); no data sent anywhere
+- **Daily reminder** — configurable push notification; skipped automatically if you've already written
+- **Light / dark theme** — follows system setting
 
-   ```bash
-   npm install
-   ```
+### Roadmap
+- **v1.1** — Insights tab: word cloud, mood trends, monthly summary, patterns
+- **v1.2** — Premium ($3.99 one-time): mood mosaic widget, export (TXT/PDF), themes, photo per entry, yearly recap (Spotify Wrapped style)
 
-2. Start the app
+## Privacy
 
-   ```bash
-   npx expo start
-   ```
+All data lives **only on your device**.
 
-In the output, you'll find options to open the app in a
+- No accounts, no registration, no sync
+- Sentiment analysis runs locally (dictionary-based, not AI)
+- PIN stored in iOS Keychain / Android Keystore, never plain text
+- Private entries are invisible in the feed — shown as empty days to protect against a glancing eye
+- Optional backup: encrypted export to iCloud / Google Drive (coming in v1.2)
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Tech Stack
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+| Layer | Choice | Why |
+|---|---|---|
+| Framework | React Native + Expo 54 | Cross-platform, fast iteration |
+| Navigation | Expo Router (file-based) | Type-safe routes, deep links |
+| State | Zustand | Zero boilerplate, no providers |
+| Database | expo-sqlite (WAL mode) | Local-only, fast, no server |
+| Auth | expo-secure-store + expo-local-authentication | Keychain/Keystore + Face/Touch ID |
+| Notifications | expo-notifications | Daily reminder |
+| Dates | date-fns | Lightweight, tree-shakeable |
+| Architecture | New Architecture (Fabric + JSI) | Enabled by default in Expo 54 |
 
-## Get a fresh project
+## Project Structure
 
-When you're ready, run:
+```
+app/
+  (tabs)/
+    index.tsx       # Today screen
+    feed.tsx        # Entries feed
+    settings.tsx    # Settings
+  pin/
+    setup.tsx       # PIN creation modal
+    verify.tsx      # PIN verification modal
+  _layout.tsx       # Root layout, DB init
 
-```bash
-npm run reset-project
+db/
+  client.ts         # SQLite singleton + schema
+  queries.ts        # All DB operations
+  types.ts          # Entry type, mood helpers
+
+store/
+  entries.ts        # Entries state (Zustand)
+  settings.ts       # App settings (persisted)
+  auth.ts           # PIN / biometrics state
+
+services/
+  sentiment.ts      # Local mood scoring (Ru + En)
+  notifications.ts  # Daily reminder scheduling
+
+components/
+  EntryCard.tsx     # Feed row
+  OnThisDay.tsx     # Year-ago block
+  MonthSeparator.tsx
+  PinKeypad.tsx     # Animated 4-digit keypad
+  MoodDot.tsx       # Color dot (green / gray / orange)
+  ui/
+    Text.tsx        # Typed text component
+    Divider.tsx
+
+constants/
+  theme.ts          # Colors, fonts, spacing, radii
+
+hooks/
+  useTheme.ts       # Returns current theme colors
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Getting Started
 
-## Learn more
+```bash
+pnpm install
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+**iOS simulator:**
+```bash
+pnpm ios
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+**Android emulator:**
+```bash
+pnpm android
+```
 
-## Join the community
+**Type check:**
+```bash
+npx tsc --noEmit
+```
 
-Join our community of developers creating universal apps.
+Requires Xcode (iOS) or Android Studio (Android). For a physical device, use a [development build](https://docs.expo.dev/develop/development-builds/introduction/) — expo-sqlite, expo-secure-store, and expo-local-authentication are native modules not supported in Expo Go.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Design Principles
+
+- **No shame** — the app never says "you missed a day"
+- **No clutter** — serif font for entries, no emoji or decorative elements in UI
+- **No red** — negative mood color is soft orange ("a hard day", not "a bad day")
+- **No leaks** — private entries leave zero trace in the feed, widgets, or notifications
+- **No subscription** — one-time purchase for premium; your diary shouldn't expire
