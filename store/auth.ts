@@ -2,23 +2,15 @@ import * as LocalAuthentication from "expo-local-authentication";
 import * as SecureStore from "expo-secure-store";
 import { create } from "zustand";
 
+import {
+  generateRecoveryPhrase,
+  normalizeRecoveryPhrase,
+} from "../utils/recovery-phrase";
+
 const PRIVATE_PIN_KEY = "oneline_private_pin";
 const RECOVERY_KEY_KEY = "oneline_recovery_key";
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_MS = 5 * 60 * 1000;
-
-// Alphanumeric chars excluding visually ambiguous ones (0, O, I, 1, L)
-const KEY_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-
-function generateRecoveryKey(): string {
-  const groups = Array.from({ length: 4 }, () =>
-    Array.from(
-      { length: 4 },
-      () => KEY_CHARS[Math.floor(Math.random() * KEY_CHARS.length)],
-    ).join(""),
-  );
-  return groups.join("-");
-}
 
 interface AuthState {
   isPrivateModeOn: boolean;
@@ -34,12 +26,12 @@ interface AuthState {
   isRateLimited: () => boolean;
   remainingLockSeconds: () => number;
   verifyRecoveryKey: (key: string) => Promise<boolean>;
-  /** Resets PIN using a valid recovery key. Returns new recovery key to show once. */
+  /** Resets PIN using a valid recovery phrase. Returns new recovery phrase to show once. */
   resetPinWithRecoveryKey: (
     recoveryKey: string,
     newPin: string,
   ) => Promise<string | null>;
-  /** Re-generates recovery key (call only when private mode is already ON). Returns new key. */
+  /** Re-generates recovery phrase (call only when private mode is already ON). Returns new phrase. */
   regenerateRecoveryKey: () => Promise<string>;
 }
 
@@ -53,7 +45,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   async setupPrivatePin(pin: string) {
-    const recoveryKey = generateRecoveryKey();
+    const recoveryKey = generateRecoveryPhrase();
     await SecureStore.setItemAsync(PRIVATE_PIN_KEY, pin);
     await SecureStore.setItemAsync(RECOVERY_KEY_KEY, recoveryKey);
     set({ isPrivateModeOn: true, attempts: 0, lockedUntil: null });
@@ -104,13 +96,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   async verifyRecoveryKey(key: string) {
     const stored = await SecureStore.getItemAsync(RECOVERY_KEY_KEY);
-    return stored !== null && stored.toUpperCase() === key.toUpperCase().trim();
+    return (
+      stored !== null &&
+      normalizeRecoveryPhrase(stored) === normalizeRecoveryPhrase(key)
+    );
   },
 
   async resetPinWithRecoveryKey(recoveryKey: string, newPin: string) {
     const valid = await get().verifyRecoveryKey(recoveryKey);
     if (!valid) return null;
-    const newKey = generateRecoveryKey();
+    const newKey = generateRecoveryPhrase();
     await SecureStore.setItemAsync(PRIVATE_PIN_KEY, newPin);
     await SecureStore.setItemAsync(RECOVERY_KEY_KEY, newKey);
     set({ isPrivateModeOn: true, attempts: 0, lockedUntil: null });
@@ -118,7 +113,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   async regenerateRecoveryKey() {
-    const newKey = generateRecoveryKey();
+    const newKey = generateRecoveryPhrase();
     await SecureStore.setItemAsync(RECOVERY_KEY_KEY, newKey);
     return newKey;
   },

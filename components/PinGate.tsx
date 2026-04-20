@@ -6,6 +6,7 @@ import { useT } from "@/hooks/useT";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/auth";
 import { useSettingsStore } from "@/store/settings";
+import { normalizeRecoveryPhrase } from "../utils/recovery-phrase";
 import * as LocalAuthentication from "expo-local-authentication";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -158,7 +159,6 @@ export function PinGate({ visible, onUnlocked, onCancel }: Props) {
         actionLabel={t("pin.recoverySaved")}
         onCopy={handleCopy}
         onAction={onUnlocked}
-        showHandle={false}
       />
     );
   }
@@ -197,24 +197,24 @@ export function PinGate({ visible, onUnlocked, onCancel }: Props) {
               ]}
               value={recoveryInput}
               onChangeText={(v) => {
-                // Strip everything except alphanumerics, uppercase, max 16 chars
-                const raw = v
-                  .replace(/[^A-Z0-9]/gi, "")
-                  .toUpperCase()
-                  .slice(0, 16);
-                // Insert dashes at positions 4, 8, 12
-                const masked = raw.match(/.{1,4}/g)?.join("-") ?? raw;
-                setRecoveryInput(masked);
+                setRecoveryInput(v.replace(/[^a-zA-Z\s]/g, "").toLowerCase());
                 setRecoveryError(false);
               }}
-              placeholder="XXXX-XXXX-XXXX-XXXX"
+              placeholder={t("auth.recoveryPlaceholder")}
               placeholderTextColor={theme.textTertiary}
-              autoCapitalize="characters"
+              autoCapitalize="none"
               autoCorrect={false}
+              multiline
+              numberOfLines={3}
               autoFocus
+              textAlignVertical="top"
             />
             {recoveryError && (
-              <Text type="caption" variant="challenging" style={styles.recoveryErr}>
+              <Text
+                type="caption"
+                variant="challenging"
+                style={styles.recoveryErr}
+              >
                 {t("auth.recoveryInvalid")}
               </Text>
             )}
@@ -229,9 +229,12 @@ export function PinGate({ visible, onUnlocked, onCancel }: Props) {
               },
             ]}
             onPress={handleRecoverySubmit}
-            disabled={!recoveryInput.trim()}
+            disabled={!normalizeRecoveryPhrase(recoveryInput)}
           >
-            <Text type="action" style={[styles.submitBtnText, { color: "#fff" }]}>
+            <Text
+              type="action"
+              style={[styles.submitBtnText, { color: "#fff" }]}
+            >
               {t("auth.recoverySubmit")}
             </Text>
           </Pressable>
@@ -380,13 +383,13 @@ const styles = StyleSheet.create({
   recoveryInputWrap: { width: "100%", marginBottom: Spacing[6] },
   recoveryInput: {
     width: "100%",
-    height: 52,
+    minHeight: 112,
     borderRadius: Radii.xl,
     borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: Spacing[5],
-    fontSize: 18,
-    letterSpacing: 2,
-    textAlign: "center",
+    paddingVertical: Spacing[4],
+    fontSize: 17,
+    lineHeight: 24,
   },
   recoveryErr: { textAlign: "center", marginTop: Spacing[2] },
   submitBtn: {
