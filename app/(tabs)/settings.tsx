@@ -187,7 +187,7 @@ export default function SettingsScreen() {
       showsVerticalScrollIndicator={false}
     >
       <View style={styles.pageHeader}>
-        <Text variant="title">{t("settings.title")}</Text>
+        <Text variant="header">{t("settings.title")}</Text>
       </View>
 
       <SettingsSection title={t("settings.reminders")}>
@@ -272,7 +272,11 @@ export default function SettingsScreen() {
         visible={showRecoveryKeyModal}
         recoveryKey={newRecoveryKey}
         copied={recoveryKeyCopied}
+        title={t("settings.newRecoveryKey")}
+        subtitle={t("settings.newRecoveryKeyMessage")}
+        actionLabel={t("pin.recoverySaved")}
         onCopy={handleCopyRecoveryKey}
+        onAction={() => setShowRecoveryKeyModal(false)}
         onClose={() => setShowRecoveryKeyModal(false)}
       />
 

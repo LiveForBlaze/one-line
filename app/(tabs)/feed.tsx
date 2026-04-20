@@ -1,7 +1,7 @@
 import { EntryCard } from "@/components/EntryCard";
 import { MonthSeparator } from "@/components/MonthSeparator";
 import { Text } from "@/components/ui/Text";
-import { Fonts, FontSizes, Radii, Spacing } from "@/constants/theme";
+import { Radii, Spacing } from "@/constants/theme";
 import type { Entry } from "@/db/types";
 import { useDateLocale } from "@/hooks/useDateLocale";
 import { useT } from "@/hooks/useT";
@@ -132,8 +132,6 @@ export default function FeedScreen() {
               styles.searchInput,
               {
                 color: theme.text,
-                fontFamily: Fonts.sans,
-                fontSize: FontSizes.base,
               },
             ]}
             value={query}
@@ -147,7 +145,7 @@ export default function FeedScreen() {
           />
           {query.length > 0 && (
             <Pressable onPress={handleClearSearch} style={styles.cancelBtn}>
-              <Text variant="label" style={{ color: theme.tint }}>
+              <Text type="label" variant="accent">
                 {t("feed.cancel")}
               </Text>
             </Pressable>
@@ -172,10 +170,7 @@ export default function FeedScreen() {
                     active && { backgroundColor: theme.surface },
                   ]}
                 >
-                  <Text
-                    variant="label"
-                    style={{ color: active ? theme.text : theme.textTertiary }}
-                  >
+                  <Text type="label" variant={active ? "primary" : "tertiary"}>
                     {label}
                   </Text>
                 </Pressable>
@@ -187,7 +182,7 @@ export default function FeedScreen() {
 
       {listData.length === 0 ? (
         <View style={styles.empty}>
-          <Text variant="body" secondary style={styles.emptyText}>
+          <Text type="text" variant="secondary" style={styles.emptyText}>
             {query ? t("feed.emptySearch") : t("feed.empty")}
           </Text>
         </View>
@@ -243,27 +238,19 @@ export default function FeedScreen() {
             {/* Date */}
             <View style={styles.sheetDateRow}>
               <Text
-                style={[
-                  styles.sheetDayNum,
-                  { color: theme.tint, fontFamily: Fonts.serif },
-                ]}
+                type="header"
+                variant="accent"
+                style={styles.sheetDayNum}
               >
                 {format(parseISO(selectedEntry.date), "d", { locale })}
               </Text>
               <View>
-                <Text
-                  style={[styles.sheetWeekday, { color: theme.textTertiary }]}
-                >
+                <Text type="overline" variant="tertiary" style={styles.sheetWeekday}>
                   {format(parseISO(selectedEntry.date), "EEEE", {
                     locale,
                   }).toUpperCase()}
                 </Text>
-                <Text
-                  style={[
-                    styles.sheetMonthYear,
-                    { color: theme.textSecondary },
-                  ]}
-                >
+                <Text type="text" variant="secondary" style={styles.sheetMonthYear}>
                   {(() => {
                     const s = format(
                       parseISO(selectedEntry.date),
@@ -282,12 +269,7 @@ export default function FeedScreen() {
               showsVerticalScrollIndicator={false}
               bounces={false}
             >
-              <Text
-                style={[
-                  styles.sheetText,
-                  { color: theme.text, fontFamily: Fonts.serif },
-                ]}
-              >
+              <Text type="entry" style={styles.sheetText}>
                 {selectedEntry.text || "—"}
               </Text>
             </ScrollView>
@@ -361,8 +343,8 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing[4],
   },
   sheetDayNum: { fontSize: 48, lineHeight: 52, fontWeight: "300" },
-  sheetWeekday: { fontSize: 10, fontWeight: "600", letterSpacing: 1.2 },
-  sheetMonthYear: { fontSize: 15, marginTop: 2 },
+  sheetWeekday: { letterSpacing: 1.2 },
+  sheetMonthYear: { marginTop: 2 },
   sheetScroll: { paddingHorizontal: Spacing[6] },
-  sheetText: { fontSize: 17, lineHeight: 28, paddingBottom: Spacing[4] },
+  sheetText: { lineHeight: 28, paddingBottom: Spacing[4] },
 });

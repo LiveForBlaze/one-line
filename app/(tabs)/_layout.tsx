@@ -1,10 +1,10 @@
 import { Tabs } from "expo-router";
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HapticTab } from "@/components/haptic-tab";
-import { Fonts } from "@/constants/theme";
+import { Text } from "@/components/ui/Text";
 import { useT } from "@/hooks/useT";
 import { useTheme } from "@/hooks/useTheme";
 
@@ -13,6 +13,7 @@ function TabLabel({ label, focused }: { label: string; focused: boolean }) {
   return (
     <View style={styles.tabItem}>
       <Text
+        type="label"
         style={[
           styles.tabText,
           { color: focused ? theme.tint : theme.tabIconDefault },
@@ -94,9 +95,6 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   tabText: {
-    fontSize: 13,
-    fontFamily: Fonts.sans,
-    fontWeight: "500",
     letterSpacing: 0.1,
   },
   line: {

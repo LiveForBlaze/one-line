@@ -56,7 +56,7 @@ export function LanguagePickerModal({
         <View style={styles.handle}>
           <View style={[styles.handleBar, { backgroundColor: theme.border }]} />
         </View>
-        <Text variant="label" secondary style={styles.sheetTitle}>
+        <Text type="label" variant="secondary" style={styles.sheetTitle}>
           {t("settings.language").toUpperCase()}
         </Text>
         <FlatList
@@ -75,19 +75,19 @@ export function LanguagePickerModal({
                 onPress={() => onSelect(item.code)}
               >
                 <View style={styles.langLabel}>
-                  <Text variant="body" style={{ color: theme.text }}>
+                  <Text type="text">
                     {item.native}
                   </Text>
                   <Text
-                    variant="caption"
-                    secondary
+                    type="caption"
+                    variant="secondary"
                     style={{ marginLeft: Spacing[2] }}
                   >
                     {item.label}
                   </Text>
                 </View>
                 {isActive && (
-                  <Text variant="body" style={{ color: theme.tint }}>
+                  <Text type="text" variant="accent">
                     ✓
                   </Text>
                 )}

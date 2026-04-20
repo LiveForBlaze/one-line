@@ -7,23 +7,134 @@ import { Modal, Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface RecoveryKeyModalProps {
-  visible: boolean;
+  visible?: boolean;
   recoveryKey: string;
   copied: boolean;
+  title: string;
+  subtitle: string;
+  actionLabel: string;
   onCopy: () => void;
-  onClose: () => void;
+  onAction: () => void;
+  onClose?: () => void;
+  useModal?: boolean;
+  showHandle?: boolean;
+  topInset?: number;
+  bottomInset?: number;
 }
 
 export function RecoveryKeyModal({
   visible,
   recoveryKey,
   copied,
+  title,
+  subtitle,
+  actionLabel,
   onCopy,
+  onAction,
   onClose,
+  useModal = true,
+  showHandle = true,
+  topInset,
+  bottomInset,
 }: RecoveryKeyModalProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const { t } = useT();
+
+  const resolvedTopInset = topInset ?? insets.top;
+  const resolvedBottomInset = bottomInset ?? insets.bottom;
+
+  const content = (
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      {showHandle && (
+        <View style={styles.handle}>
+          <View style={[styles.handleBar, { backgroundColor: theme.border }]} />
+        </View>
+      )}
+
+      <View
+        style={[
+          styles.inner,
+          {
+            paddingTop: resolvedTopInset + Spacing[2],
+            paddingBottom: resolvedBottomInset + Spacing[6],
+          },
+        ]}
+      >
+        <View style={styles.header}>
+          <Text type="subheader" style={styles.title}>
+            {title}
+          </Text>
+          <Text type="text" variant="secondary" style={styles.subtitle}>
+            {subtitle}
+          </Text>
+        </View>
+
+        <View
+          style={[styles.keyCard, { backgroundColor: theme.surfaceElevated }]}
+        >
+          <Text type="overline" variant="tertiary" style={styles.keyLabel}>
+            {t("pin.recoveryKeyLabel")}
+          </Text>
+
+          <View style={styles.keyGrid}>
+            {recoveryKey.split("-").map((group, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.keyGroup,
+                  {
+                    backgroundColor: theme.background,
+                    borderColor: theme.border,
+                  },
+                ]}
+              >
+                <Text type="label" style={{ color: theme.text, letterSpacing: 4 }}>
+                  {group}
+                </Text>
+              </View>
+            ))}
+          </View>
+
+          <Pressable
+            onPress={onCopy}
+            style={({ pressed }) => [
+              styles.copyButton,
+              {
+                backgroundColor: copied ? theme.tintBackground : theme.surface,
+                borderColor: copied ? theme.tint : theme.border,
+                opacity: pressed ? 0.7 : 1,
+              },
+            ]}
+          >
+            <Text type="label" variant={copied ? "accent" : "secondary"}>
+              {copied ? t("pin.copied") : t("pin.copy")}
+            </Text>
+          </Pressable>
+        </View>
+
+        <Text type="caption" variant="secondary" style={styles.warning}>
+          {t("pin.recoveryWarning")}
+        </Text>
+
+        <Pressable
+          style={({ pressed }) => [
+            styles.doneButton,
+            { backgroundColor: theme.tint, opacity: pressed ? 0.8 : 1 },
+          ]}
+          onPress={onAction}
+        >
+          <Text type="action" style={[styles.doneButtonText, { color: "#fff" }]}>
+            {actionLabel}
+          </Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+
+  if (!useModal) {
+    return content;
+  }
 
   return (
     <Modal
@@ -31,99 +142,9 @@ export function RecoveryKeyModal({
       animationType="fade"
       presentationStyle="fullScreen"
       statusBarTranslucent
-      onRequestClose={onClose}
+      onRequestClose={onClose ?? onAction}
     >
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <View style={styles.handle}>
-          <View style={[styles.handleBar, { backgroundColor: theme.border }]} />
-        </View>
-
-        <View
-          style={[
-            styles.inner,
-            {
-              paddingTop: insets.top + Spacing[2],
-              paddingBottom: insets.bottom + Spacing[6],
-            },
-          ]}
-        >
-          <View style={styles.header}>
-            <Text variant="heading" style={styles.title}>
-              {t("settings.newRecoveryKey")}
-            </Text>
-            <Text variant="body" secondary style={styles.subtitle}>
-              {t("settings.newRecoveryKeyMessage")}
-            </Text>
-          </View>
-
-          <View
-            style={[styles.keyCard, { backgroundColor: theme.surfaceElevated }]}
-          >
-            <Text
-              variant="caption"
-              style={[styles.keyLabel, { color: theme.textTertiary }]}
-            >
-              {t("pin.recoveryKeyLabel")}
-            </Text>
-
-            <View style={styles.keyGrid}>
-              {recoveryKey.split("-").map((group, index) => (
-                <View
-                  key={index}
-                  style={[
-                    styles.keyGroup,
-                    {
-                      backgroundColor: theme.background,
-                      borderColor: theme.border,
-                    },
-                  ]}
-                >
-                  <Text style={{ color: theme.text, letterSpacing: 4 }}>
-                    {group}
-                  </Text>
-                </View>
-              ))}
-            </View>
-
-            <Pressable
-              onPress={onCopy}
-              style={({ pressed }) => [
-                styles.copyButton,
-                {
-                  backgroundColor: copied
-                    ? theme.tintBackground
-                    : theme.surface,
-                  borderColor: copied ? theme.tint : theme.border,
-                  opacity: pressed ? 0.7 : 1,
-                },
-              ]}
-            >
-              <Text
-                variant="label"
-                style={{ color: copied ? theme.tint : theme.textSecondary }}
-              >
-                {copied ? t("pin.copied") : t("pin.copy")}
-              </Text>
-            </Pressable>
-          </View>
-
-          <Text variant="caption" secondary style={styles.warning}>
-            {t("pin.recoveryWarning")}
-          </Text>
-
-          <Pressable
-            style={({ pressed }) => [
-              styles.doneButton,
-              { backgroundColor: theme.tint, opacity: pressed ? 0.8 : 1 },
-            ]}
-            onPress={onClose}
-          >
-            <Text style={[styles.doneButtonText, { color: "#fff" }]}>
-              {t("pin.recoverySaved")}
-            </Text>
-          </Pressable>
-        </View>
-      </View>
+      {content}
     </Modal>
   );
 }
@@ -151,10 +172,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   keyLabel: {
-    fontSize: 10,
-    fontWeight: "600",
-    letterSpacing: 1.2,
-    textTransform: "uppercase",
   },
   keyGrid: {
     flexDirection: "row",
@@ -186,5 +203,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: "auto",
   },
-  doneButtonText: { fontSize: 16, fontWeight: "600" },
+  doneButtonText: {},
 });

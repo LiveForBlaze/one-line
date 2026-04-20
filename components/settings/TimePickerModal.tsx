@@ -63,21 +63,21 @@ export function TimePickerModal({
 
         <View style={styles.headerRow}>
           <Pressable onPress={onClose}>
-            <Text variant="label" secondary>
+            <Text type="label" variant="secondary">
               {t("auth.cancel")}
             </Text>
           </Pressable>
-          <Text variant="label" secondary style={styles.sheetTitle}>
+          <Text type="label" variant="secondary" style={styles.sheetTitle}>
             {t("settings.reminderTime").toUpperCase()}
           </Text>
           <Pressable onPress={onSave}>
-            <Text variant="label" style={{ color: theme.tint }}>
+            <Text type="label" variant="accent">
               {t("settings.done")}
             </Text>
           </Pressable>
         </View>
 
-        <Text variant="title" style={[styles.timeValue, { color: theme.text }]}>
+        <Text type="header" style={styles.timeValue}>
           {draftTimeLabel}
         </Text>
 
@@ -88,7 +88,7 @@ export function TimePickerModal({
               { backgroundColor: theme.surface, borderColor: theme.border },
             ]}
           >
-            <Text variant="caption" secondary style={styles.columnTitle}>
+            <Text type="caption" variant="secondary" style={styles.columnTitle}>
               {t("settings.hours")}
             </Text>
             <FlatList
@@ -106,10 +106,7 @@ export function TimePickerModal({
                       selected && { backgroundColor: theme.tintBackground },
                     ]}
                   >
-                    <Text
-                      variant="body"
-                      style={{ color: selected ? theme.tint : theme.text }}
-                    >
+                    <Text type="text" variant={selected ? "accent" : "primary"}>
                       {String(item).padStart(2, "0")}
                     </Text>
                   </Pressable>
@@ -124,7 +121,7 @@ export function TimePickerModal({
               { backgroundColor: theme.surface, borderColor: theme.border },
             ]}
           >
-            <Text variant="caption" secondary style={styles.columnTitle}>
+            <Text type="caption" variant="secondary" style={styles.columnTitle}>
               {t("settings.minutes")}
             </Text>
             <FlatList
@@ -142,10 +139,7 @@ export function TimePickerModal({
                       selected && { backgroundColor: theme.tintBackground },
                     ]}
                   >
-                    <Text
-                      variant="body"
-                      style={{ color: selected ? theme.tint : theme.text }}
-                    >
+                    <Text type="text" variant={selected ? "accent" : "primary"}>
                       {String(item).padStart(2, "0")}
                     </Text>
                   </Pressable>

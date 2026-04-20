@@ -1,12 +1,12 @@
-import React from 'react';
-import { View, StyleSheet, Pressable } from 'react-native';
-import { format, parseISO } from 'date-fns';
-import { Text } from '@/components/ui/Text';
-import { MoodDot } from '@/components/MoodDot';
-import { useTheme } from '@/hooks/useTheme';
-import { useDateLocale } from '@/hooks/useDateLocale';
-import { Fonts, FontSizes, Spacing } from '@/constants/theme';
-import type { Entry } from '@/db/types';
+import { MoodDot } from "@/components/MoodDot";
+import { Text } from "@/components/ui/Text";
+import { Spacing } from "@/constants/theme";
+import type { Entry } from "@/db/types";
+import { useDateLocale } from "@/hooks/useDateLocale";
+import { useTheme } from "@/hooks/useTheme";
+import { format, parseISO } from "date-fns";
+import React from "react";
+import { Pressable, StyleSheet, View } from "react-native";
 
 interface Props {
   entry: Entry;
@@ -17,7 +17,7 @@ interface Props {
 export function EntryCard({ entry, isPrivateModeOn, onPress }: Props) {
   const theme = useTheme();
   const locale = useDateLocale();
-  const isPrivate = entry.kind === 'private';
+  const isPrivate = entry.kind === "private";
   const date = parseISO(entry.date);
 
   return (
@@ -32,11 +32,19 @@ export function EntryCard({ entry, isPrivateModeOn, onPress }: Props) {
     >
       {/* Date column */}
       <View style={styles.dateCol}>
-        <Text style={[styles.dayNum, { color: isPrivate ? theme.textSecondary : theme.tint, fontFamily: Fonts.serif }]}>
-          {format(date, 'd', { locale })}
+        <Text
+          type="subheader"
+          variant={isPrivate ? "secondary" : "accent"}
+          style={styles.dayNum}
+        >
+          {format(date, "d", { locale })}
         </Text>
-        <Text style={[styles.weekday, { color: theme.textTertiary }]}>
-          {format(date, 'EEE', { locale }).toUpperCase()}
+        <Text
+          type="caption"
+          variant="tertiary"
+          style={styles.weekday}
+        >
+          {format(date, "EEE", { locale }).toUpperCase()}
         </Text>
       </View>
 
@@ -47,13 +55,21 @@ export function EntryCard({ entry, isPrivateModeOn, onPress }: Props) {
       <View style={styles.content}>
         {entry.text ? (
           <Text
-            style={[styles.entryText, { color: isPrivate ? theme.textSecondary : theme.text, fontFamily: Fonts.serif }]}
+            type="text"
+            variant={isPrivate ? "secondary" : "primary"}
+            style={styles.entryText}
             numberOfLines={2}
           >
             {entry.text}
           </Text>
         ) : (
-          <Text style={[styles.entryText, { color: theme.textTertiary }]}>—</Text>
+          <Text
+            type="text"
+            variant="tertiary"
+            style={styles.entryText}
+          >
+            —
+          </Text>
         )}
       </View>
 
@@ -69,18 +85,22 @@ export function EntryCard({ entry, isPrivateModeOn, onPress }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: Spacing[3] + 2,
     paddingHorizontal: Spacing[5],
     gap: Spacing[3],
     minHeight: 52,
   },
-  dateCol: { width: 30, alignItems: 'center' },
-  dayNum: { fontSize: 19, lineHeight: 22, fontWeight: '400' },
-  weekday: { fontSize: 9, fontWeight: '600', letterSpacing: 0.8, marginTop: 1 },
-  divider: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch', marginVertical: 2 },
+  dateCol: { width: 30, alignItems: "center" },
+  dayNum: { fontSize: 19, lineHeight: 22, fontWeight: "400" },
+  weekday: { fontSize: 9, fontWeight: "600", letterSpacing: 0.8, marginTop: 1 },
+  divider: {
+    width: StyleSheet.hairlineWidth,
+    alignSelf: "stretch",
+    marginVertical: 2,
+  },
   content: { flex: 1 },
-  entryText: { fontSize: FontSizes.base, lineHeight: 22 },
-  moodCol: { alignItems: 'center', justifyContent: 'center', width: 14 },
+  entryText: {},
+  moodCol: { alignItems: "center", justifyContent: "center", width: 14 },
 });

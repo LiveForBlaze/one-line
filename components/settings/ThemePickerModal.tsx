@@ -55,7 +55,7 @@ export function ThemePickerModal({
         <View style={styles.handle}>
           <View style={[styles.handleBar, { backgroundColor: theme.border }]} />
         </View>
-        <Text variant="label" secondary style={styles.sheetTitle}>
+        <Text type="label" variant="secondary" style={styles.sheetTitle}>
           {t("settings.theme").toUpperCase()}
         </Text>
         <FlatList
@@ -73,11 +73,11 @@ export function ThemePickerModal({
                 ]}
                 onPress={() => onSelect(item.code)}
               >
-                <Text variant="body" style={{ color: theme.text }}>
+                <Text type="text">
                   {item.label}
                 </Text>
                 {isActive && (
-                  <Text variant="body" style={{ color: theme.tint }}>
+                  <Text type="text" variant="accent">
                     ✓
                   </Text>
                 )}

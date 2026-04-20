@@ -8,7 +8,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Text } from '@/components/ui/Text';
 import { useTheme } from '@/hooks/useTheme';
-import { Spacing, Radii, FontSizes } from '@/constants/theme';
+import { Spacing, Radii } from '@/constants/theme';
 
 const PIN_LENGTH = 4;
 
@@ -102,7 +102,7 @@ export function PinKeypad({ onComplete, error, label }: Props) {
                 onPress={() => handleKey(key)}
                 disabled={!key}
               >
-                <Text style={[styles.keyText, { color: theme.text, fontFamily: 'System' }]}>
+                <Text type="subheader" style={[styles.keyText, { color: theme.text }]}> 
                   {key}
                 </Text>
               </Pressable>
@@ -147,8 +147,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  keyText: {
-    fontSize: FontSizes.xl,
-    lineHeight: 28,
-  },
+  keyText: {},
 });

@@ -1,6 +1,6 @@
 import { OnThisDay } from "@/components/OnThisDay";
 import { Text } from "@/components/ui/Text";
-import { Fonts, FontSizes, Radii, Spacing } from "@/constants/theme";
+import { FontSizes, Radii, Spacing } from "@/constants/theme";
 import type { EntryKind } from "@/db/types";
 import { useDateLocale } from "@/hooks/useDateLocale";
 import { useT } from "@/hooks/useT";
@@ -122,24 +122,17 @@ export default function TodayScreen() {
       >
         {/* Date header */}
         <View style={styles.header}>
-          <Text
-            variant="caption"
-            style={[styles.dayOfWeek, { color: theme.textTertiary }]}
-          >
+          <Text type="overline" variant="tertiary" style={styles.dayOfWeek}>
             {dayOfWeek}
           </Text>
           <View style={styles.dateRow}>
-            <Text
-              style={[
-                styles.monthDay,
-                { color: theme.text, fontFamily: Fonts.serif },
-              ]}
-            >
+            <Text type="display" style={styles.monthDay}>
               {monthDay}
             </Text>
             <Text
-              variant="label"
-              style={[styles.year, { color: theme.textSecondary }]}
+              type="text"
+              variant="secondary"
+              style={styles.year}
             >
               {year}
             </Text>
@@ -166,10 +159,7 @@ export default function TodayScreen() {
                     active && { backgroundColor: theme.surface },
                   ]}
                 >
-                  <Text
-                    variant="label"
-                    style={{ color: active ? theme.text : theme.textTertiary }}
-                  >
+                  <Text type="label" variant={active ? "primary" : "tertiary"}>
                     {kind === "common" ? t("today.common") : t("today.private")}
                   </Text>
                 </Pressable>
@@ -190,7 +180,6 @@ export default function TodayScreen() {
               styles.input,
               {
                 color: theme.text,
-                fontFamily: Fonts.serif,
                 fontSize: FontSizes.md,
               },
             ]}
@@ -213,14 +202,14 @@ export default function TodayScreen() {
                   entering={FadeIn.duration(200)}
                   exiting={FadeOut.duration(300)}
                 >
-                  <Text variant="caption" style={{ color: theme.positive }}>
+                  <Text type="caption" variant="positive">
                     {t("today.saved")}
                   </Text>
                 </Animated.View>
               )}
             </View>
             {(isNearLimit || activeText.length > 0) && (
-              <Text variant="caption" style={{ color: charCountColor }}>
+              <Text type="caption" color={charCountColor}>
                 {activeText.length}
                 {isOverLimit ? `\u202F/\u202F${SOFT_LIMIT}` : ""}
               </Text>
@@ -247,13 +236,8 @@ const styles = StyleSheet.create({
     gap: Spacing[2],
     marginBottom: Spacing[4],
   },
-  monthDay: {
-    fontSize: 32,
-    lineHeight: 38,
-    fontWeight: "400",
-    letterSpacing: -0.5,
-  },
-  year: { fontSize: FontSizes.base, opacity: 0.6 },
+  monthDay: {},
+  year: { opacity: 0.6 },
   accentLine: { width: 28, height: 2, borderRadius: 1 },
   segmented: {
     flexDirection: "row",

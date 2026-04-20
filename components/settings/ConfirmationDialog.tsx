@@ -49,10 +49,10 @@ export function ConfirmationDialog({
             { backgroundColor: theme.background, borderColor: theme.border },
           ]}
         >
-          <Text variant="heading" style={styles.dialogTitle}>
+          <Text type="subheader" style={styles.dialogTitle}>
             {title}
           </Text>
-          <Text variant="body" secondary style={styles.dialogMessage}>
+          <Text type="text" variant="secondary" style={styles.dialogMessage}>
             {message}
           </Text>
           <View style={styles.actionStack}>
@@ -63,7 +63,7 @@ export function ConfirmationDialog({
               ]}
               onPress={onConfirm}
             >
-              <Text style={[styles.primaryButtonText, { color: "#fff" }]}>
+              <Text type="action" style={[styles.primaryButtonText, { color: "#fff" }]}>
                 {confirmLabel}
               </Text>
             </Pressable>
@@ -77,7 +77,7 @@ export function ConfirmationDialog({
               ]}
               onPress={onClose}
             >
-              <Text variant="label">{t("auth.cancel")}</Text>
+              <Text type="label">{t("auth.cancel")}</Text>
             </Pressable>
           </View>
         </View>
@@ -125,8 +125,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  primaryButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
+  primaryButtonText: {},
 });
