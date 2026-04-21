@@ -1,4 +1,5 @@
 import { OnThisDay } from "@/components/OnThisDay";
+import { AccentLine } from "@/components/ui/AccentLine";
 import { Text } from "@/components/ui/Text";
 import { FontSizes, Radii, Spacing } from "@/constants/theme";
 import { normalizeMoodScore, type EntryKind, type MoodScore } from "@/db/types";
@@ -165,20 +166,19 @@ export default function TodayScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.scroll,
-          { paddingTop: insets.top + Spacing[7] },
+          { paddingTop: insets.top + Spacing[5] },
         ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Date header */}
+        {/* Page header */}
+        <View style={styles.pageHeader}>
+          <Text variant="header">{t("tabs.today")}</Text>
+          <AccentLine />
+        </View>
+
+        {/* Date */}
         <View style={styles.header}>
-          <View
-            style={[styles.dayOfWeekBadge, { backgroundColor: theme.surfaceElevated }]}
-          >
-            <Text type="overline" variant="tertiary" style={styles.dayOfWeek}>
-              {dayOfWeek}
-            </Text>
-          </View>
           <View style={styles.dateRow}>
             <Text type="display" style={styles.monthDay}>
               <Text type="display" variant="accent" style={styles.monthAccent}>
@@ -192,7 +192,9 @@ export default function TodayScreen() {
               {year}
             </Text>
           </View>
-          <View style={[styles.accentLine, { backgroundColor: theme.tint }]} />
+          <Text type="overline" variant="tertiary" style={styles.dayOfWeek}>
+            {dayOfWeek}
+          </Text>
         </View>
 
         {/* Segmented control — only visible in Private Mode */}
@@ -285,7 +287,7 @@ export default function TodayScreen() {
               <Text type="caption" variant="secondary" style={styles.moodLabel}>
                 {t("today.mood")}
               </Text>
-              <Text type="caption" variant="tertiary" style={styles.moodLegendSide}>
+              <Text type="caption" variant="tertiary" style={[styles.moodLegendSide, { textAlign: "right" }]}>
                 {t("today.moodHigh")}
               </Text>
             </View>
@@ -339,6 +341,7 @@ export default function TodayScreen() {
 
         <View style={{ height: insets.bottom + Spacing[8] }} />
       </ScrollView>
+
     </KeyboardAvoidingView>
   );
 }
@@ -346,30 +349,23 @@ export default function TodayScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   scroll: { paddingHorizontal: Spacing[5] },
+  pageHeader: { marginBottom: Spacing[5] },
   header: { marginBottom: Spacing[8] },
-  dayOfWeekBadge: {
-    alignSelf: "flex-start",
-    borderRadius: Radii.full,
-    paddingHorizontal: Spacing[2],
-    paddingVertical: 6,
-    marginBottom: Spacing[2],
-  },
   dayOfWeek: { letterSpacing: 1.6 },
   dateRow: {
     flexDirection: "row",
     alignItems: "baseline",
-    gap: Spacing[2],
+    gap: Spacing[1],
     flexWrap: "wrap",
-    marginBottom: Spacing[3],
+    marginBottom: Spacing[1],
   },
-  monthDay: { fontSize: 30, lineHeight: 36, letterSpacing: -1.1 },
+  monthDay: { fontSize: 36, lineHeight: 42, letterSpacing: -1.4 },
   monthAccent: {
-    fontWeight: "600",
-    letterSpacing: -0.8,
+    fontWeight: "700",
+    letterSpacing: -1.0,
   },
-  dayAccent: { fontWeight: "400" },
-  year: { opacity: 0.6 },
-  accentLine: { width: 40, height: 3, borderRadius: 999 },
+  dayAccent: { fontWeight: "700" },
+  year: { opacity: 0.45 },
   segmented: {
     flexDirection: "row",
     borderRadius: Radii.lg,
@@ -423,7 +419,7 @@ const styles = StyleSheet.create({
     paddingBottom: 2,
   },
   moodLegendSide: {
-    minWidth: 36,
+    flex: 1,
   },
   moodChip: {
     flex: 1,

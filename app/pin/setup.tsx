@@ -84,12 +84,10 @@ export default function PinSetupScreen() {
         {
           backgroundColor: theme.background,
           paddingTop: verticalInset,
+          paddingBottom: insets.bottom + Spacing[4],
         },
       ]}
     >
-      <View style={styles.handle}>
-        <View style={[styles.handleBar, { backgroundColor: theme.border }]} />
-      </View>
       <View style={styles.content}>
         <Text type="subheader" style={styles.title}>
           {step === "current"
@@ -146,11 +144,6 @@ export default function PinSetupScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  handle: {
-    alignItems: "center",
-    paddingBottom: Spacing[2],
-  },
-  handleBar: { width: 36, height: 4, borderRadius: 2 },
   content: {
     flex: 1,
     alignItems: "center",

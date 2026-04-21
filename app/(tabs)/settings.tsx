@@ -9,6 +9,7 @@ import {
 } from "@/components/settings/SettingsSection";
 import { ThemePickerModal } from "@/components/settings/ThemePickerModal";
 import { TimePickerModal } from "@/components/settings/TimePickerModal";
+import { AccentLine } from "@/components/ui/AccentLine";
 import { Divider } from "@/components/ui/Divider";
 import { Text } from "@/components/ui/Text";
 import { Spacing } from "@/constants/theme";
@@ -188,7 +189,7 @@ export default function SettingsScreen() {
     >
       <View style={styles.pageHeader}>
         <Text variant="header">{t("settings.title")}</Text>
-        <View style={[styles.headerRule, { backgroundColor: theme.tint }]} />
+        <AccentLine />
       </View>
 
       <SettingsSection title={t("settings.reminders")}>
@@ -320,10 +321,4 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { paddingBottom: Spacing[16], gap: Spacing[5] },
   pageHeader: { paddingHorizontal: Spacing[5], paddingBottom: Spacing[2] },
-  headerRule: {
-    width: 32,
-    height: 3,
-    borderRadius: 999,
-    marginTop: Spacing[3],
-  },
 });

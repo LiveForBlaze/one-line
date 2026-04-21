@@ -67,7 +67,7 @@ export type ColorScheme = "light" | "dark";
 export const Fonts = Platform.select({
   ios: {
     sans: "System",
-    serif: "Georgia",
+    serif: "New York",
     rounded: "ui-rounded",
     mono: "ui-monospace",
   },
@@ -79,7 +79,7 @@ export const Fonts = Platform.select({
   },
   default: {
     sans: "System",
-    serif: "Georgia",
+    serif: "New York",
     rounded: "System",
     mono: "monospace",
   },
@@ -118,9 +118,9 @@ export const Spacing = {
 } as const;
 
 export const Radii = {
-  sm: 12,
+  sm: 8,
   md: 12,
-  lg: 12,
-  xl: 12,
+  lg: 16,
+  xl: 24,
   full: 9999,
 } as const;

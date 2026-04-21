@@ -1,6 +1,7 @@
 import { db } from './client';
 import type { Entry, EntryKind, NewEntry } from './types';
 
+
 export function upsertEntry(entry: Omit<NewEntry, 'mood_score'> & { mood_score?: number | null }): Entry {
   return db.getFirstSync<Entry>(
     `INSERT INTO entries (date, kind, text, mood_score, photo_path)

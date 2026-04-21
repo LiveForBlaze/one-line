@@ -61,6 +61,7 @@ export function PrivacySection({
         <>
           <SettingsRow
             label={t("settings.exitPrivateMode")}
+            icon="log-out-outline"
             onPress={onExitPrivateMode}
           />
           <Divider inset={Spacing[4]} />

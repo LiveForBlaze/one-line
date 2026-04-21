@@ -1,35 +1,36 @@
+import { BlurView } from "expo-blur";
 import { Tabs } from "expo-router";
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 import { HapticTab } from "@/components/haptic-tab";
 import { Text } from "@/components/ui/Text";
 import { useT } from "@/hooks/useT";
 import { useTheme } from "@/hooks/useTheme";
 
-function TabLabel({ label, focused }: { label: string; focused: boolean }) {
+type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
+
+function TabItem({
+  label,
+  focused,
+  icon,
+  iconFocused,
+}: {
+  label: string;
+  focused: boolean;
+  icon: IoniconName;
+  iconFocused: IoniconName;
+}) {
   const theme = useTheme();
+  const color = focused ? theme.tint : theme.tabIconDefault;
   return (
     <View style={styles.tabItem}>
-      <Text
-        type="label"
-        style={[
-          styles.tabText,
-          {
-            color: focused ? theme.tint : theme.tabIconDefault,
-            opacity: focused ? 1 : 0.82,
-          },
-        ]}
-      >
+      <Ionicons name={focused ? iconFocused : icon} size={22} color={color} />
+      <Text type="label" style={[styles.tabText, { color }]}>
         {label}
       </Text>
-      <View
-        style={[
-          styles.line,
-          { backgroundColor: focused ? theme.tint : "transparent" },
-        ]}
-      />
     </View>
   );
 }
@@ -38,6 +39,7 @@ export default function TabLayout() {
   const theme = useTheme();
   const { t } = useT();
   const insets = useSafeAreaInsets();
+  const isDark = theme.background === "#161411";
 
   return (
     <Tabs
@@ -46,18 +48,25 @@ export default function TabLayout() {
         tabBarInactiveTintColor: theme.tabIconDefault,
         tabBarButton: HapticTab,
         tabBarShowLabel: false,
+        tabBarBackground: () =>
+          Platform.OS === "android" && Platform.Version < 31 ? (
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? "rgba(22,20,17,0.92)" : "rgba(246,241,232,0.92)" }]} />
+          ) : (
+            <BlurView
+              intensity={60}
+              tint={isDark ? "dark" : "light"}
+              style={StyleSheet.absoluteFill}
+            />
+          ),
         tabBarStyle: {
-          backgroundColor: theme.tabBar,
+          backgroundColor: "transparent",
           borderTopColor: theme.tabBarBorder,
           borderTopWidth: StyleSheet.hairlineWidth,
           elevation: 0,
           shadowOpacity: 0,
-          height: 54 + insets.bottom,
-          paddingTop: 10,
-          paddingBottom: insets.bottom + 2,
-        },
-        tabBarItemStyle: {
-          paddingTop: 2,
+          position: "absolute",
+          height: 62 + insets.bottom,
+          paddingBottom: insets.bottom,
         },
         tabBarIconStyle: {
           width: "100%",
@@ -70,7 +79,12 @@ export default function TabLayout() {
         name="index"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabLabel label={t("tabs.today")} focused={focused} />
+            <TabItem
+              label={t("tabs.today")}
+              focused={focused}
+              icon="calendar-outline"
+              iconFocused="calendar"
+            />
           ),
         }}
       />
@@ -78,7 +92,12 @@ export default function TabLayout() {
         name="feed"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabLabel label={t("tabs.entries")} focused={focused} />
+            <TabItem
+              label={t("tabs.entries")}
+              focused={focused}
+              icon="book-outline"
+              iconFocused="book"
+            />
           ),
         }}
       />
@@ -86,7 +105,12 @@ export default function TabLayout() {
         name="settings"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabLabel label={t("tabs.settings")} focused={focused} />
+            <TabItem
+              label={t("tabs.settings")}
+              focused={focused}
+              icon="settings-outline"
+              iconFocused="settings"
+            />
           ),
         }}
       />
@@ -99,14 +123,10 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
+    gap: 4,
   },
   tabText: {
-    letterSpacing: 0.15,
-  },
-  line: {
-    width: 24,
-    height: 2,
-    borderRadius: 999,
+    fontSize: 11,
+    letterSpacing: 0.1,
   },
 });

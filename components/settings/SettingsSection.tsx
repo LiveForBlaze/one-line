@@ -1,6 +1,7 @@
 import { Text } from "@/components/ui/Text";
 import { Radii, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
@@ -16,6 +17,7 @@ interface SettingsRowProps {
   onPress?: () => void;
   right?: React.ReactNode;
   destructive?: boolean;
+  icon?: React.ComponentProps<typeof Ionicons>["name"];
 }
 
 export function SettingsSection({ title, children }: SettingsSectionProps) {
@@ -49,6 +51,7 @@ export function SettingsRow({
   onPress,
   right,
   destructive,
+  icon,
 }: SettingsRowProps) {
   const theme = useTheme();
 
@@ -61,6 +64,14 @@ export function SettingsRow({
       onPress={onPress}
       disabled={!onPress}
     >
+      {icon && (
+        <Ionicons
+          name={icon}
+          size={18}
+          color={destructive ? theme.challenging : theme.textSecondary}
+          style={styles.rowIcon}
+        />
+      )}
       <View style={styles.rowLabel}>
         <Text
           variant="body"
@@ -107,6 +118,7 @@ const styles = StyleSheet.create({
     minHeight: 56,
     gap: Spacing[2],
   },
+  rowIcon: { marginRight: 2 },
   rowLabel: { flex: 1, gap: 2 },
   rowSubtitle: { marginTop: 1 },
   rowRight: {

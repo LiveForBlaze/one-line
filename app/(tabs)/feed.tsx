@@ -1,6 +1,7 @@
 import { EntryCard } from "@/components/EntryCard";
 import { MoodDot } from "@/components/MoodDot";
 import { MonthSeparator } from "@/components/MonthSeparator";
+import { AccentLine } from "@/components/ui/AccentLine";
 import { Text } from "@/components/ui/Text";
 import { Radii, Spacing } from "@/constants/theme";
 import { normalizeMoodScore, type Entry } from "@/db/types";
@@ -160,28 +161,24 @@ export default function FeedScreen() {
       >
         <View style={styles.pageHeader}>
           <Text variant="header">{t("tabs.entries")}</Text>
-          <View style={[styles.headerRule, { backgroundColor: theme.tint }]} />
+          <AccentLine />
         </View>
 
         <View style={styles.searchRow}>
-          <TextInput
-            style={[
-              styles.searchInput,
-              {
-                color: theme.text,
-                backgroundColor: theme.surface,
-                borderColor: theme.border,
-              },
-            ]}
-            value={query}
-            onChangeText={handleSearch}
-            placeholder={t("feed.search")}
-            placeholderTextColor={theme.textTertiary}
-            returnKeyType="search"
-            autoCorrect={false}
-            autoCapitalize="none"
-            clearButtonMode="while-editing"
-          />
+          <View style={[styles.searchInputWrap, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.searchIcon, { color: theme.textTertiary }]}>⌕</Text>
+            <TextInput
+              style={[styles.searchInput, { color: theme.text }]}
+              value={query}
+              onChangeText={handleSearch}
+              placeholder={t("feed.search")}
+              placeholderTextColor={theme.textTertiary}
+              returnKeyType="search"
+              autoCorrect={false}
+              autoCapitalize="none"
+              clearButtonMode="while-editing"
+            />
+          </View>
           {query.length > 0 && (
             <Pressable onPress={handleClearSearch} style={styles.cancelBtn}>
               <Text type="label" variant="accent">
@@ -420,19 +417,21 @@ const styles = StyleSheet.create({
   pageHeader: {
     paddingBottom: Spacing[1],
   },
-  headerRule: {
-    width: 32,
-    height: 3,
-    borderRadius: 999,
-    marginTop: Spacing[3],
-  },
   searchRow: { flexDirection: "row", alignItems: "center", gap: Spacing[2] },
-  searchInput: {
+  searchInputWrap: {
     flex: 1,
-    height: 48,
+    height: 44,
     borderRadius: Radii.xl,
     borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: Spacing[4],
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: Spacing[3],
+    gap: Spacing[2],
+  },
+  searchIcon: { fontSize: 18, lineHeight: 20 },
+  searchInput: {
+    flex: 1,
+    height: "100%",
   },
   cancelBtn: { paddingVertical: Spacing[1] },
   filterRow: { flexDirection: "row", borderRadius: Radii.xl, padding: 4 },

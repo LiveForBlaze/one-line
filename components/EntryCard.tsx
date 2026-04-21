@@ -33,6 +33,12 @@ export function EntryCard({ entry, isPrivateModeOn, onPress }: Props) {
       onPress={onPress}
       disabled={!onPress}
     >
+      {/* Left accent stripe */}
+      <View style={[
+        styles.stripe,
+        { backgroundColor: isPrivate ? theme.textTertiary : theme.tint },
+      ]} />
+
       {/* Date column */}
       <View style={styles.dateCol}>
         <Text
@@ -46,9 +52,6 @@ export function EntryCard({ entry, isPrivateModeOn, onPress }: Props) {
           {format(date, "EEE", { locale }).toUpperCase()}
         </Text>
       </View>
-
-      {/* Thin divider */}
-      <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
       {/* Text */}
       <View style={styles.content}>
@@ -84,14 +87,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: Radii.lg,
     borderWidth: StyleSheet.hairlineWidth,
-    paddingVertical: Spacing[3] + 2,
-    paddingHorizontal: Spacing[4],
+    paddingVertical: Spacing[4],
+    paddingRight: Spacing[4],
     gap: Spacing[3],
-    minHeight: 68,
+    minHeight: 72,
+    overflow: "hidden",
   },
-  dateCol: { width: 30, alignItems: "center" },
-  dayNum: { fontSize: 24, lineHeight: 26, fontWeight: "300" },
-  weekday: { fontSize: 9, fontWeight: "600", letterSpacing: 0.8, marginTop: 1 },
+  stripe: {
+    width: 3,
+    alignSelf: "stretch",
+    borderRadius: 2,
+    marginLeft: Spacing[2],
+  },
+  dateCol: { width: 34, alignItems: "center" },
+  dayNum: { fontSize: 26, lineHeight: 28, fontWeight: "300", letterSpacing: -0.5 },
+  weekday: { fontSize: 9, fontWeight: "500", letterSpacing: 1.0, marginTop: 2 },
   divider: {
     width: StyleSheet.hairlineWidth,
     alignSelf: "stretch",

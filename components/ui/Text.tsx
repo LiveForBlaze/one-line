@@ -142,14 +142,14 @@ const styles = StyleSheet.create({
   display: {
     fontSize: FontSizes["3xl"],
     fontWeight: FontWeights.regular,
-    lineHeight: 40,
-    letterSpacing: -0.8,
+    lineHeight: 42,
+    letterSpacing: -1.2,
   },
   overline: {
-    fontSize: 10,
-    fontWeight: FontWeights.semibold,
+    fontSize: 11,
+    fontWeight: FontWeights.medium,
     lineHeight: 14,
-    letterSpacing: 1.2,
+    letterSpacing: 1.8,
     textTransform: "uppercase",
   },
   action: {
@@ -161,8 +161,8 @@ const styles = StyleSheet.create({
   entry: {
     fontSize: FontSizes.md,
     fontWeight: FontWeights.regular,
-    lineHeight: 26,
-    letterSpacing: 0.1,
+    lineHeight: 30,
+    letterSpacing: 0.15,
   },
   caption: {
     fontSize: FontSizes.xs,

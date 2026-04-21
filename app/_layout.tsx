@@ -10,7 +10,7 @@ import { AppState, type AppStateStatus } from "react-native";
 import "react-native-reanimated";
 
 import { Colors } from "@/constants/theme";
-import { initSchema } from "@/db/client";
+import { db, initSchema } from "@/db/client";
 import { useColorSchemeKey } from "@/hooks/useTheme";
 import "@/i18n";
 import { configureNotificationHandler } from "@/services/notifications";
@@ -22,6 +22,15 @@ export const unstable_settings = {
 
 initSchema();
 configureNotificationHandler();
+
+// TODO: remove demo entries
+db.execSync(`
+  INSERT OR IGNORE INTO entries (date, kind, text, mood_score, photo_path) VALUES ('2026-04-19', 'common', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore.', 1, NULL);
+  INSERT OR IGNORE INTO entries (date, kind, text, mood_score, photo_path) VALUES ('2026-04-17', 'common', 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo.', 0, NULL);
+  INSERT OR IGNORE INTO entries (date, kind, text, mood_score, photo_path) VALUES ('2026-04-14', 'common', 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.', -1, NULL);
+  INSERT OR IGNORE INTO entries (date, kind, text, mood_score, photo_path) VALUES ('2026-04-10', 'common', 'Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim.', 1, NULL);
+  INSERT OR IGNORE INTO entries (date, kind, text, mood_score, photo_path) VALUES ('2026-03-30', 'common', 'Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit sed consequuntur magni.', 0, NULL);
+`);
 
 function PrivateModeGuard() {
   const { lockPrivate } = useAuthStore();
