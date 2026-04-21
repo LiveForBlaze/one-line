@@ -2,7 +2,7 @@ import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useSettingsStore } from "@/store/settings";
 
-export type ThemeColors = typeof Colors.light & typeof Colors.dark;
+export type ThemeColors = typeof Colors.light;
 export type ResolvedColorScheme = "light" | "dark";
 
 export function useColorSchemeKey(): ResolvedColorScheme {
@@ -18,5 +18,5 @@ export function useColorSchemeKey(): ResolvedColorScheme {
 
 export function useTheme() {
   const scheme = useColorSchemeKey();
-  return Colors[scheme] as typeof Colors.light | typeof Colors.dark;
+  return Colors[scheme];
 }

@@ -26,10 +26,12 @@ export default {
     delete: "Delete",
     save: "Save",
     editConfirmTitle: "Edit this entry?",
-    editConfirmMessage: "Editing may change how you remember that moment. The feeling you captured is part of its truth.",
+    editConfirmMessage:
+      "Editing may change how you remember that moment. The feeling you captured is part of its truth.",
     editConfirmOk: "Edit anyway",
     deleteConfirmTitle: "Delete this entry?",
-    deleteConfirmMessage: "Every entry holds a piece of your story. You might regret losing this one.",
+    deleteConfirmMessage:
+      "Every entry holds a piece of your story. You might regret losing this one.",
     deleteConfirmOk: "Delete",
   },
   onThisDay: {

@@ -5,7 +5,7 @@ import { useT } from "@/hooks/useT";
 import { useTheme } from "@/hooks/useTheme";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import React, { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Switch, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import { SettingsRow, SettingsSection } from "./SettingsSection";
 

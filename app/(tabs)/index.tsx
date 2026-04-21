@@ -83,7 +83,8 @@ export default function TodayScreen() {
   const setActiveText =
     activeKind === "common" ? setCommonText : setPrivateText;
   const activeMood = activeKind === "common" ? commonMood : privateMood;
-  const setActiveMood = activeKind === "common" ? setCommonMood : setPrivateMood;
+  const setActiveMood =
+    activeKind === "common" ? setCommonMood : setPrivateMood;
 
   const triggerSave = useCallback(
     (kind: EntryKind, text: string, moodScore: MoodScore | null) => {
@@ -188,11 +189,14 @@ export default function TodayScreen() {
                 {dayOfMonth}
               </Text>
             </Text>
-            <Text type="text" variant="secondary" style={styles.year}>
+            <Text type="text" style={[styles.year, { color: theme.tint2 }]}>
               {year}
             </Text>
           </View>
-          <Text type="overline" variant="tertiary" style={styles.dayOfWeek}>
+          <Text
+            type="overline"
+            style={[styles.dayOfWeek, { color: theme.tint2 }]}
+          >
             {dayOfWeek}
           </Text>
         </View>
@@ -237,7 +241,7 @@ export default function TodayScreen() {
           ]}
         >
           <View style={styles.cardHeading}>
-            <Text type="overline" variant="tertiary">
+            <Text type="overline" style={{ color: theme.tint2 }}>
               {activeKind === "common" ? t("today.common") : t("today.private")}
             </Text>
           </View>
@@ -281,13 +285,21 @@ export default function TodayScreen() {
             ]}
           >
             <View style={styles.moodLegendRow}>
-              <Text type="caption" variant="tertiary" style={styles.moodLegendSide}>
+              <Text
+                type="caption"
+                variant="tertiary"
+                style={styles.moodLegendSide}
+              >
                 {t("today.moodLow")}
               </Text>
               <Text type="caption" variant="secondary" style={styles.moodLabel}>
                 {t("today.mood")}
               </Text>
-              <Text type="caption" variant="tertiary" style={[styles.moodLegendSide, { textAlign: "right" }]}>
+              <Text
+                type="caption"
+                variant="tertiary"
+                style={[styles.moodLegendSide, { textAlign: "right" }]}
+              >
                 {t("today.moodHigh")}
               </Text>
             </View>
@@ -303,15 +315,23 @@ export default function TodayScreen() {
                     style={({ pressed }) => [
                       styles.moodChip,
                       {
-                        backgroundColor: selected ? colors.backgroundColor : theme.surface,
-                        borderColor: selected ? colors.borderColor : theme.border,
+                        backgroundColor: selected
+                          ? colors.backgroundColor
+                          : theme.surface,
+                        borderColor: selected
+                          ? colors.borderColor
+                          : theme.border,
                         opacity: pressed ? 0.72 : 1,
                       },
                     ]}
                   >
                     <Text
                       type="label"
-                      style={{ color: selected ? colors.textColor : theme.textSecondary }}
+                      style={{
+                        color: selected
+                          ? colors.textColor
+                          : theme.textSecondary,
+                      }}
                     >
                       {score > 0 ? `+${score}` : `${score}`}
                     </Text>
@@ -341,7 +361,6 @@ export default function TodayScreen() {
 
         <View style={{ height: insets.bottom + Spacing[8] }} />
       </ScrollView>
-
     </KeyboardAvoidingView>
   );
 }

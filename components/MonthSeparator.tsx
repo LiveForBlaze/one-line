@@ -13,13 +13,13 @@ export function MonthSeparator({ dateStr }: { dateStr: string }) {
 
   return (
     <View style={styles.container}>
-      <Text type="label" variant="secondary" style={styles.label}>
+      <Text type="label" style={[styles.label, { color: theme.tint2 }]}>
         {(() => {
           const s = format(date, "LLLL yyyy", { locale });
           return s.charAt(0).toUpperCase() + s.slice(1);
         })()}
       </Text>
-      <View style={[styles.rule, { backgroundColor: theme.border }]} />
+      <View style={[styles.rule, { backgroundColor: theme.tint2 }]} />
     </View>
   );
 }
@@ -27,10 +27,10 @@ export function MonthSeparator({ dateStr }: { dateStr: string }) {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: Spacing[4],
-    paddingTop: Spacing[6],
+    paddingTop: 0,
     paddingBottom: Spacing[3],
     gap: Spacing[2],
   },
   label: { letterSpacing: 0.6, fontWeight: "600" },
-  rule: { height: StyleSheet.hairlineWidth },
+  rule: { height: 1 },
 });

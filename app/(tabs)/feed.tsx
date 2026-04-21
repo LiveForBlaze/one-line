@@ -1,7 +1,8 @@
 import { EntryCard } from "@/components/EntryCard";
-import { MoodDot } from "@/components/MoodDot";
 import { MonthSeparator } from "@/components/MonthSeparator";
+import { MoodDot } from "@/components/MoodDot";
 import { AccentLine } from "@/components/ui/AccentLine";
+import { SearchBar } from "@/components/ui/SearchBar";
 import { Text } from "@/components/ui/Text";
 import { Radii, Spacing } from "@/constants/theme";
 import { normalizeMoodScore, type Entry } from "@/db/types";
@@ -15,6 +16,7 @@ import { useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   FlatList,
+  Keyboard,
   Modal,
   Pressable,
   ScrollView,
@@ -35,8 +37,15 @@ export default function FeedScreen() {
   const locale = useDateLocale();
   const insets = useSafeAreaInsets();
   const { t } = useT();
-  const { entries, searchResults, load, search, clearSearch, removeEntry, editEntry } =
-    useEntriesStore();
+  const {
+    entries,
+    searchResults,
+    load,
+    search,
+    clearSearch,
+    removeEntry,
+    editEntry,
+  } = useEntriesStore();
   const { isPrivateModeOn } = useAuthStore();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<FilterKind>("all");
@@ -44,7 +53,10 @@ export default function FeedScreen() {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState("");
   const [showDangerZone, setShowDangerZone] = useState(false);
-  const [dangerAction, setDangerAction] = useState<null | 'edit' | 'delete'>(null);
+  const [dangerAction, setDangerAction] = useState<null | "edit" | "delete">(
+    null,
+  );
+  const [searchBlurKey, setSearchBlurKey] = useState(0);
 
   const closeSheet = useCallback(() => {
     setSelectedEntry(null);
@@ -77,6 +89,10 @@ export default function FeedScreen() {
     useCallback(() => {
       load(isPrivateModeOn);
       if (!isPrivateModeOn) setFilter("all");
+      return () => {
+        Keyboard.dismiss();
+        setSearchBlurKey((current) => current + 1);
+      };
     }, [isPrivateModeOn, load]),
   );
 
@@ -146,7 +162,9 @@ export default function FeedScreen() {
     { key: "common", label: t("feed.filterCommon") },
     { key: "private", label: t("feed.filterPrivate") },
   ];
-  const selectedMood = selectedEntry ? normalizeMoodScore(selectedEntry.mood_score) : null;
+  const selectedMood = selectedEntry
+    ? normalizeMoodScore(selectedEntry.mood_score)
+    : null;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -164,29 +182,12 @@ export default function FeedScreen() {
           <AccentLine />
         </View>
 
-        <View style={styles.searchRow}>
-          <View style={[styles.searchInputWrap, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Text style={[styles.searchIcon, { color: theme.textTertiary }]}>⌕</Text>
-            <TextInput
-              style={[styles.searchInput, { color: theme.text }]}
-              value={query}
-              onChangeText={handleSearch}
-              placeholder={t("feed.search")}
-              placeholderTextColor={theme.textTertiary}
-              returnKeyType="search"
-              autoCorrect={false}
-              autoCapitalize="none"
-              clearButtonMode="while-editing"
-            />
-          </View>
-          {query.length > 0 && (
-            <Pressable onPress={handleClearSearch} style={styles.cancelBtn}>
-              <Text type="label" variant="accent">
-                {t("feed.cancel")}
-              </Text>
-            </Pressable>
-          )}
-        </View>
+        <SearchBar
+          value={query}
+          onChangeText={handleSearch}
+          onClear={handleClearSearch}
+          blurKey={searchBlurKey}
+        />
 
         {isPrivateModeOn && (
           <View
@@ -219,7 +220,10 @@ export default function FeedScreen() {
       {listData.length === 0 ? (
         <View style={styles.empty}>
           <View
-            style={[styles.emptyCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+            style={[
+              styles.emptyCard,
+              { backgroundColor: theme.surface, borderColor: theme.border },
+            ]}
           >
             <Text type="text" variant="secondary" style={styles.emptyText}>
               {query ? t("feed.emptySearch") : t("feed.empty")}
@@ -251,158 +255,212 @@ export default function FeedScreen() {
           />
 
           {selectedEntry && (
-          <View
-            style={[
-              styles.sheet,
-              {
-                backgroundColor: theme.surface,
-                borderColor: theme.border,
-                paddingBottom: insets.bottom + Spacing[6],
-              },
-            ]}
-          >
-            {/* Handle */}
-            <View style={styles.sheetHandle}>
-              <View
-                style={[styles.handleBar, { backgroundColor: theme.border }]}
-              />
-            </View>
-
-            {/* Date */}
-            <View style={styles.sheetDateRow}>
-              <Text type="header" variant="accent" style={styles.sheetDayNum}>
-                {format(parseISO(selectedEntry.date), "d", { locale })}
-              </Text>
-              <View style={styles.sheetMeta}>
-                <Text
-                  type="overline"
-                  variant="tertiary"
-                  style={styles.sheetWeekday}
-                >
-                  {format(parseISO(selectedEntry.date), "EEEE", {
-                    locale,
-                  }).toUpperCase()}
-                </Text>
-                <Text
-                  type="text"
-                  variant="secondary"
-                  style={styles.sheetMonthYear}
-                >
-                  {(() => {
-                    const s = format(
-                      parseISO(selectedEntry.date),
-                      "LLLL yyyy",
-                      { locale },
-                    );
-                    return s.charAt(0).toUpperCase() + s.slice(1);
-                  })()}
-                </Text>
-                {selectedMood !== null && (
-                  <View style={styles.sheetMoodRow}>
-                    <MoodDot score={selectedMood} size={8} />
-                    <Text
-                      type="label"
-                      variant={selectedMood > 0 ? "accent" : selectedMood < 0 ? "challenging" : "secondary"}
-                    >
-                      {selectedMood > 0 ? `+${selectedMood}` : `${selectedMood}`}
-                    </Text>
-                  </View>
-                )}
+            <View
+              style={[
+                styles.sheet,
+                {
+                  backgroundColor: theme.surface,
+                  borderColor: theme.border,
+                  paddingBottom: insets.bottom + Spacing[6],
+                },
+              ]}
+            >
+              {/* Handle */}
+              <View style={styles.sheetHandle}>
+                <View
+                  style={[styles.handleBar, { backgroundColor: theme.border }]}
+                />
               </View>
-            </View>
 
-            {/* Text or edit input */}
-            {isEditing ? (
-              <TextInput
-                style={[styles.sheetEditInput, { color: theme.text }]}
-                value={editText}
-                onChangeText={setEditText}
-                multiline
-                autoFocus
-                autoCorrect
-                autoCapitalize="sentences"
-                textAlignVertical="top"
-                scrollEnabled
-              />
-            ) : (
-              <ScrollView
-                style={styles.sheetScroll}
-                showsVerticalScrollIndicator={false}
-                bounces={false}
-              >
-                <Text type="entry" style={styles.sheetText}>
-                  {selectedEntry.text || "—"}
+              {/* Date */}
+              <View style={styles.sheetDateRow}>
+                <Text type="header" variant="accent" style={styles.sheetDayNum}>
+                  {format(parseISO(selectedEntry.date), "d", { locale })}
                 </Text>
-              </ScrollView>
-            )}
-
-            {/* Actions */}
-            {isEditing ? (
-              <Pressable style={[styles.saveBtn, { backgroundColor: theme.tint }]} onPress={handleSaveEdit}>
-                <Text type="action" style={{ color: "#fff" }}>{t("feed.save")}</Text>
-              </Pressable>
-            ) : (
-              <View style={styles.dangerZone}>
-                {dangerAction === null && (
-                  <Pressable
-                    style={styles.dangerToggle}
-                    onPress={() => setShowDangerZone((v) => !v)}
+                <View style={styles.sheetMeta}>
+                  <Text
+                    type="overline"
+                    variant="tertiary"
+                    style={styles.sheetWeekday}
                   >
-                    <Text type="caption" variant="tertiary" style={styles.dangerToggleText}>
-                      {showDangerZone ? "▾" : "▸"} {t("feed.dangerZoneLabel")}
-                    </Text>
-                  </Pressable>
-                )}
-                {showDangerZone && dangerAction === null && (
-                  <View style={styles.dangerActions}>
-                    <Pressable onPress={() => setDangerAction('edit')}>
-                      <Text type="caption" variant="tertiary">{t("feed.edit")}</Text>
-                    </Pressable>
-                    <Text type="caption" variant="tertiary" style={styles.dangerDot}>·</Text>
-                    <Pressable onPress={() => setDangerAction('delete')}>
-                      <Text type="caption" variant="challenging">{t("feed.delete")}</Text>
-                    </Pressable>
-                  </View>
-                )}
-                {dangerAction === 'edit' && (
-                  <View style={styles.dangerConfirm}>
-                    <Text type="caption" variant="secondary" style={styles.dangerConfirmText}>
-                      {t("feed.editConfirmMessage")}
-                    </Text>
-                    <View style={styles.dangerConfirmActions}>
-                      <Pressable onPress={handleConfirmEdit}>
-                        <Text type="caption" variant="tertiary">{t("feed.editConfirmOk")}</Text>
-                      </Pressable>
-                      <Text type="caption" variant="tertiary" style={styles.dangerDot}>·</Text>
-                      <Pressable onPress={() => setDangerAction(null)}>
-                        <Text type="caption" variant="tertiary">{t("auth.cancel")}</Text>
-                      </Pressable>
+                    {format(parseISO(selectedEntry.date), "EEEE", {
+                      locale,
+                    }).toUpperCase()}
+                  </Text>
+                  <Text
+                    type="text"
+                    variant="secondary"
+                    style={styles.sheetMonthYear}
+                  >
+                    {(() => {
+                      const s = format(
+                        parseISO(selectedEntry.date),
+                        "LLLL yyyy",
+                        { locale },
+                      );
+                      return s.charAt(0).toUpperCase() + s.slice(1);
+                    })()}
+                  </Text>
+                  {selectedMood !== null && (
+                    <View style={styles.sheetMoodRow}>
+                      <MoodDot score={selectedMood} size={8} />
+                      <Text
+                        type="label"
+                        variant={
+                          selectedMood > 0
+                            ? "accent"
+                            : selectedMood < 0
+                              ? "challenging"
+                              : "secondary"
+                        }
+                      >
+                        {selectedMood > 0
+                          ? `+${selectedMood}`
+                          : `${selectedMood}`}
+                      </Text>
                     </View>
-                  </View>
-                )}
-                {dangerAction === 'delete' && (
-                  <View style={styles.dangerConfirm}>
-                    <Text type="caption" variant="secondary" style={styles.dangerConfirmText}>
-                      {t("feed.deleteConfirmMessage")}
-                    </Text>
-                    <View style={styles.dangerConfirmActions}>
-                      <Pressable onPress={handleConfirmDelete}>
-                        <Text type="caption" variant="challenging">{t("feed.deleteConfirmOk")}</Text>
-                      </Pressable>
-                      <Text type="caption" variant="tertiary" style={styles.dangerDot}>·</Text>
-                      <Pressable onPress={() => setDangerAction(null)}>
-                        <Text type="caption" variant="tertiary">{t("auth.cancel")}</Text>
-                      </Pressable>
-                    </View>
-                  </View>
-                )}
+                  )}
+                </View>
               </View>
-            )}
-          </View>
+
+              {/* Text or edit input */}
+              {isEditing ? (
+                <TextInput
+                  style={[styles.sheetEditInput, { color: theme.text }]}
+                  value={editText}
+                  onChangeText={setEditText}
+                  multiline
+                  autoFocus
+                  autoCorrect
+                  autoCapitalize="sentences"
+                  textAlignVertical="top"
+                  scrollEnabled
+                />
+              ) : (
+                <ScrollView
+                  style={styles.sheetScroll}
+                  showsVerticalScrollIndicator={false}
+                  bounces={false}
+                >
+                  <Text type="entry" style={styles.sheetText}>
+                    {selectedEntry.text || "—"}
+                  </Text>
+                </ScrollView>
+              )}
+
+              {/* Actions */}
+              {isEditing ? (
+                <Pressable
+                  style={[styles.saveBtn, { backgroundColor: theme.tint }]}
+                  onPress={handleSaveEdit}
+                >
+                  <Text type="action" style={{ color: "#fff" }}>
+                    {t("feed.save")}
+                  </Text>
+                </Pressable>
+              ) : (
+                <View style={styles.dangerZone}>
+                  {dangerAction === null && (
+                    <Pressable
+                      style={styles.dangerToggle}
+                      onPress={() => setShowDangerZone((v) => !v)}
+                    >
+                      <Text
+                        type="caption"
+                        variant="tertiary"
+                        style={styles.dangerToggleText}
+                      >
+                        {showDangerZone ? "▾" : "▸"} {t("feed.dangerZoneLabel")}
+                      </Text>
+                    </Pressable>
+                  )}
+                  {showDangerZone && dangerAction === null && (
+                    <View style={styles.dangerActions}>
+                      <Pressable onPress={() => setDangerAction("edit")}>
+                        <Text type="caption" variant="tertiary">
+                          {t("feed.edit")}
+                        </Text>
+                      </Pressable>
+                      <Text
+                        type="caption"
+                        variant="tertiary"
+                        style={styles.dangerDot}
+                      >
+                        ·
+                      </Text>
+                      <Pressable onPress={() => setDangerAction("delete")}>
+                        <Text type="caption" variant="challenging">
+                          {t("feed.delete")}
+                        </Text>
+                      </Pressable>
+                    </View>
+                  )}
+                  {dangerAction === "edit" && (
+                    <View style={styles.dangerConfirm}>
+                      <Text
+                        type="caption"
+                        variant="secondary"
+                        style={styles.dangerConfirmText}
+                      >
+                        {t("feed.editConfirmMessage")}
+                      </Text>
+                      <View style={styles.dangerConfirmActions}>
+                        <Pressable onPress={handleConfirmEdit}>
+                          <Text type="caption" variant="tertiary">
+                            {t("feed.editConfirmOk")}
+                          </Text>
+                        </Pressable>
+                        <Text
+                          type="caption"
+                          variant="tertiary"
+                          style={styles.dangerDot}
+                        >
+                          ·
+                        </Text>
+                        <Pressable onPress={() => setDangerAction(null)}>
+                          <Text type="caption" variant="tertiary">
+                            {t("auth.cancel")}
+                          </Text>
+                        </Pressable>
+                      </View>
+                    </View>
+                  )}
+                  {dangerAction === "delete" && (
+                    <View style={styles.dangerConfirm}>
+                      <Text
+                        type="caption"
+                        variant="secondary"
+                        style={styles.dangerConfirmText}
+                      >
+                        {t("feed.deleteConfirmMessage")}
+                      </Text>
+                      <View style={styles.dangerConfirmActions}>
+                        <Pressable onPress={handleConfirmDelete}>
+                          <Text type="caption" variant="challenging">
+                            {t("feed.deleteConfirmOk")}
+                          </Text>
+                        </Pressable>
+                        <Text
+                          type="caption"
+                          variant="tertiary"
+                          style={styles.dangerDot}
+                        >
+                          ·
+                        </Text>
+                        <Pressable onPress={() => setDangerAction(null)}>
+                          <Text type="caption" variant="tertiary">
+                            {t("auth.cancel")}
+                          </Text>
+                        </Pressable>
+                      </View>
+                    </View>
+                  )}
+                </View>
+              )}
+            </View>
           )}
         </View>
       </Modal>
-
     </View>
   );
 }
@@ -417,23 +475,6 @@ const styles = StyleSheet.create({
   pageHeader: {
     paddingBottom: Spacing[1],
   },
-  searchRow: { flexDirection: "row", alignItems: "center", gap: Spacing[2] },
-  searchInputWrap: {
-    flex: 1,
-    height: 44,
-    borderRadius: Radii.xl,
-    borderWidth: StyleSheet.hairlineWidth,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: Spacing[3],
-    gap: Spacing[2],
-  },
-  searchIcon: { fontSize: 18, lineHeight: 20 },
-  searchInput: {
-    flex: 1,
-    height: "100%",
-  },
-  cancelBtn: { paddingVertical: Spacing[1] },
   filterRow: { flexDirection: "row", borderRadius: Radii.xl, padding: 4 },
   filterBtn: {
     flex: 1,
@@ -443,7 +484,7 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingHorizontal: Spacing[4],
-    paddingTop: Spacing[1],
+    paddingTop: 0,
     paddingBottom: Spacing[16],
     gap: Spacing[2],
   },

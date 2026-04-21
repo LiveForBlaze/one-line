@@ -10,7 +10,7 @@ interface SettingsState {
   notificationHour: number;
   notificationMinute: number;
   biometricsEnabled: boolean;
-  language: AppLanguage | null; // null = follow device
+  language: AppLanguage | null;
   themeMode: ThemeMode;
 
   setNotificationsEnabled: (v: boolean) => void;

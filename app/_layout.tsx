@@ -1,9 +1,23 @@
 import {
+  Manrope_400Regular,
+  Manrope_500Medium,
+  Manrope_600SemiBold,
+  Manrope_700Bold,
+} from "@expo-google-fonts/manrope";
+import {
+  Newsreader_400Regular,
+  Newsreader_500Medium,
+  Newsreader_600SemiBold,
+  Newsreader_700Bold,
+} from "@expo-google-fonts/newsreader";
+import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
+import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef } from "react";
 import { AppState, type AppStateStatus } from "react-native";
@@ -22,6 +36,8 @@ export const unstable_settings = {
 
 initSchema();
 configureNotificationHandler();
+
+void SplashScreen.preventAutoHideAsync();
 
 // TODO: remove demo entries
 db.execSync(`
@@ -55,6 +71,27 @@ function PrivateModeGuard() {
 
 export default function RootLayout() {
   const colorScheme = useColorSchemeKey();
+  const [fontsLoaded, fontError] = useFonts({
+    Manrope_400Regular,
+    Manrope_500Medium,
+    Manrope_600SemiBold,
+    Manrope_700Bold,
+    Newsreader_400Regular,
+    Newsreader_500Medium,
+    Newsreader_600SemiBold,
+    Newsreader_700Bold,
+  });
+
+  useEffect(() => {
+    if (fontsLoaded || fontError) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontError, fontsLoaded]);
+
+  if (!fontsLoaded && !fontError) {
+    return null;
+  }
+
   const navigationTheme =
     colorScheme === "dark"
       ? {

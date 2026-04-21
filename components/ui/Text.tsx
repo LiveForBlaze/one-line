@@ -1,7 +1,7 @@
-import { Fonts, FontSizes, FontWeights } from "@/constants/theme";
+import { Fonts, FontSizes } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import React from "react";
-import { Text as RNText, StyleSheet, type TextProps } from "react-native";
+import { Text as RNText, StyleSheet, type TextProps, type TextStyle } from "react-native";
 
 type TextType =
   | "text"
@@ -63,7 +63,6 @@ export function Text({
         styles[resolvedType],
         {
           color: resolvedColor,
-          fontFamily: Fonts.sans,
         },
         style,
       ]}
@@ -124,63 +123,63 @@ function getTextColor({
 const styles = StyleSheet.create({
   text: {
     fontSize: FontSizes.base,
-    fontWeight: FontWeights.regular,
+    fontFamily: Fonts.sansRegular,
     lineHeight: 22,
   },
   subheader: {
-    fontSize: FontSizes.xl,
-    fontWeight: FontWeights.semibold,
+    fontSize: 25,
+    fontFamily: Fonts.serifSemibold,
     lineHeight: 30,
-    letterSpacing: -0.3,
-  },
-  header: {
-    fontSize: FontSizes["2xl"],
-    fontWeight: FontWeights.bold,
-    lineHeight: 34,
     letterSpacing: -0.5,
   },
+  header: {
+    fontSize: 31,
+    fontFamily: Fonts.serifBold,
+    lineHeight: 36,
+    letterSpacing: -0.8,
+  },
   display: {
-    fontSize: FontSizes["3xl"],
-    fontWeight: FontWeights.regular,
+    fontSize: 38,
+    fontFamily: Fonts.serifMedium,
     lineHeight: 42,
-    letterSpacing: -1.2,
+    letterSpacing: -1.4,
   },
   overline: {
     fontSize: 11,
-    fontWeight: FontWeights.medium,
+    fontFamily: Fonts.sansSemibold,
     lineHeight: 14,
     letterSpacing: 1.8,
     textTransform: "uppercase",
   },
   action: {
     fontSize: 16,
-    fontWeight: FontWeights.semibold,
+    fontFamily: Fonts.sansSemibold,
     lineHeight: 20,
     letterSpacing: 0.1,
   },
   entry: {
     fontSize: FontSizes.md,
-    fontWeight: FontWeights.regular,
+    fontFamily: Fonts.sansRegular,
     lineHeight: 30,
     letterSpacing: 0.15,
   },
   caption: {
     fontSize: FontSizes.xs,
-    fontWeight: FontWeights.regular,
+    fontFamily: Fonts.sansMedium,
     lineHeight: 16,
-    letterSpacing: 0.2,
+    letterSpacing: 0.15,
   },
   label: {
     fontSize: FontSizes.sm,
-    fontWeight: FontWeights.medium,
+    fontFamily: Fonts.sansSemibold,
     lineHeight: 18,
-    letterSpacing: 0.1,
+    letterSpacing: 0.05,
   },
   date: {
     fontSize: FontSizes.sm,
-    fontWeight: FontWeights.medium,
+    fontFamily: Fonts.serifMedium,
     lineHeight: 18,
-    letterSpacing: 0.5,
+    letterSpacing: 0.35,
     textTransform: "uppercase",
   },
-});
+} satisfies Record<string, TextStyle>);

@@ -27,8 +27,7 @@ export function SettingsSection({ title, children }: SettingsSectionProps) {
     <View style={styles.section}>
       <Text
         variant="caption"
-        secondary
-        style={[styles.sectionTitle, { color: theme.textSecondary }]}
+        style={[styles.sectionTitle, { color: theme.tint2 }]}
       >
         {title.toUpperCase()}
       </Text>

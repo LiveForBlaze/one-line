@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { useTheme } from '@/hooks/useTheme';
-import { moodLabel, normalizeMoodScore } from '@/db/types';
+import { moodLabel, normalizeMoodScore } from "@/db/types";
+import { useTheme } from "@/hooks/useTheme";
+import React from "react";
+import { StyleSheet, View } from "react-native";
 
 interface Props {
   score: number | null;
@@ -14,11 +14,11 @@ export function MoodDot({ score, size = 8 }: Props) {
   const normalized = normalizeMoodScore(score);
 
   const color =
-    label === 'positive'
+    label === "positive"
       ? normalized === 3
         ? theme.positive
         : theme.tint
-      : label === 'challenging'
+      : label === "challenging"
         ? theme.challenging
         : theme.neutral;
 

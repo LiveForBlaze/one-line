@@ -36,7 +36,7 @@ export function EntryCard({ entry, isPrivateModeOn, onPress }: Props) {
       {/* Left accent stripe */}
       <View style={[
         styles.stripe,
-        { backgroundColor: isPrivate ? theme.textTertiary : theme.tint },
+        { backgroundColor: isPrivate ? theme.tint2 : theme.tint },
       ]} />
 
       {/* Date column */}

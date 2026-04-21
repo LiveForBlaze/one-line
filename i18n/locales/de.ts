@@ -26,10 +26,12 @@ export default {
     delete: "Löschen",
     save: "Speichern",
     editConfirmTitle: "Eintrag bearbeiten?",
-    editConfirmMessage: "Bearbeiten kann verändern, wie du dich an diesen Moment erinnerst. Das Gefühl, das du festgehalten hast, gehört zur Wahrheit.",
+    editConfirmMessage:
+      "Bearbeiten kann verändern, wie du dich an diesen Moment erinnerst. Das Gefühl, das du festgehalten hast, gehört zur Wahrheit.",
     editConfirmOk: "Trotzdem bearbeiten",
     deleteConfirmTitle: "Eintrag löschen?",
-    deleteConfirmMessage: "Jeder Eintrag ist ein Teil deiner Geschichte. Du könntest es später bereuen.",
+    deleteConfirmMessage:
+      "Jeder Eintrag ist ein Teil deiner Geschichte. Du könntest es später bereuen.",
     deleteConfirmOk: "Löschen",
   },
   onThisDay: {

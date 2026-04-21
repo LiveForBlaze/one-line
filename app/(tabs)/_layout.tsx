@@ -1,12 +1,13 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { BlurView } from "expo-blur";
 import { Tabs } from "expo-router";
 import React from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Ionicons from "@expo/vector-icons/Ionicons";
 
 import { HapticTab } from "@/components/haptic-tab";
 import { Text } from "@/components/ui/Text";
+import { Colors } from "@/constants/theme";
 import { useT } from "@/hooks/useT";
 import { useTheme } from "@/hooks/useTheme";
 
@@ -39,7 +40,7 @@ export default function TabLayout() {
   const theme = useTheme();
   const { t } = useT();
   const insets = useSafeAreaInsets();
-  const isDark = theme.background === "#161411";
+  const isDark = theme.background === Colors.dark.background;
 
   return (
     <Tabs
@@ -50,7 +51,16 @@ export default function TabLayout() {
         tabBarShowLabel: false,
         tabBarBackground: () =>
           Platform.OS === "android" && Platform.Version < 31 ? (
-            <View style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? "rgba(22,20,17,0.92)" : "rgba(246,241,232,0.92)" }]} />
+            <View
+              style={[
+                StyleSheet.absoluteFill,
+                {
+                  backgroundColor: isDark
+                    ? "rgba(22,20,17,0.92)"
+                    : "rgba(246,241,232,0.92)",
+                },
+              ]}
+            />
           ) : (
             <BlurView
               intensity={60}
