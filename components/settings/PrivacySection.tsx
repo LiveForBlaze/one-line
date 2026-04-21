@@ -63,28 +63,6 @@ export function PrivacySection({
             label={t("settings.exitPrivateMode")}
             onPress={onExitPrivateMode}
           />
-          {hasBiometrics && (
-            <>
-              <Divider inset={Spacing[4]} />
-              <SettingsRow
-                label={t("settings.useBiometrics")}
-                right={
-                  <Switch
-                    value={biometricsEnabled}
-                    onValueChange={onToggleBiometrics}
-                    trackColor={{
-                      false: theme.border,
-                      true: theme.tintBackground,
-                    }}
-                    thumbColor={
-                      biometricsEnabled ? theme.tint : theme.textTertiary
-                    }
-                    ios_backgroundColor={theme.border}
-                  />
-                }
-              />
-            </>
-          )}
           <Divider inset={Spacing[4]} />
           <Pressable
             style={({ pressed }) => [

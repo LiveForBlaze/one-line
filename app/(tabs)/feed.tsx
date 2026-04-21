@@ -1,8 +1,9 @@
 import { EntryCard } from "@/components/EntryCard";
+import { MoodDot } from "@/components/MoodDot";
 import { MonthSeparator } from "@/components/MonthSeparator";
 import { Text } from "@/components/ui/Text";
 import { Radii, Spacing } from "@/constants/theme";
-import type { Entry } from "@/db/types";
+import { normalizeMoodScore, type Entry } from "@/db/types";
 import { useDateLocale } from "@/hooks/useDateLocale";
 import { useT } from "@/hooks/useT";
 import { useTheme } from "@/hooks/useTheme";
@@ -33,12 +34,43 @@ export default function FeedScreen() {
   const locale = useDateLocale();
   const insets = useSafeAreaInsets();
   const { t } = useT();
-  const { entries, searchResults, load, search, clearSearch } =
+  const { entries, searchResults, load, search, clearSearch, removeEntry, editEntry } =
     useEntriesStore();
   const { isPrivateModeOn } = useAuthStore();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<FilterKind>("all");
   const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editText, setEditText] = useState("");
+  const [showDangerZone, setShowDangerZone] = useState(false);
+  const [dangerAction, setDangerAction] = useState<null | 'edit' | 'delete'>(null);
+
+  const closeSheet = useCallback(() => {
+    setSelectedEntry(null);
+    setIsEditing(false);
+    setEditText("");
+    setShowDangerZone(false);
+  }, []);
+
+  const handleConfirmEdit = useCallback(() => {
+    setDangerAction(null);
+    setShowDangerZone(false);
+    setEditText(selectedEntry?.text ?? "");
+    setIsEditing(true);
+  }, [selectedEntry]);
+
+  const handleSaveEdit = useCallback(() => {
+    if (!selectedEntry) return;
+    editEntry(selectedEntry.date, selectedEntry.kind, editText);
+    setSelectedEntry({ ...selectedEntry, text: editText });
+    setIsEditing(false);
+  }, [selectedEntry, editText, editEntry]);
+
+  const handleConfirmDelete = useCallback(() => {
+    if (!selectedEntry) return;
+    removeEntry(selectedEntry.date, selectedEntry.kind);
+    closeSheet();
+  }, [selectedEntry, removeEntry, closeSheet]);
 
   useFocusEffect(
     useCallback(() => {
@@ -113,6 +145,7 @@ export default function FeedScreen() {
     { key: "common", label: t("feed.filterCommon") },
     { key: "private", label: t("feed.filterPrivate") },
   ];
+  const selectedMood = selectedEntry ? normalizeMoodScore(selectedEntry.mood_score) : null;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -211,19 +244,16 @@ export default function FeedScreen() {
         visible={selectedEntry !== null}
         transparent
         animationType="fade"
-        onRequestClose={() => setSelectedEntry(null)}
+        onRequestClose={closeSheet}
         statusBarTranslucent
       >
-        <Pressable
-          style={styles.backdrop}
-          onPress={() => setSelectedEntry(null)}
-        >
-          <View
-            style={[styles.backdropBg, { backgroundColor: "rgba(0,0,0,0.4)" }]}
+        <View style={StyleSheet.absoluteFill}>
+          <Pressable
+            style={[{ flex: 1 }, { backgroundColor: "rgba(0,0,0,0.4)" }]}
+            onPress={closeSheet}
           />
-        </Pressable>
 
-        {selectedEntry && (
+          {selectedEntry && (
           <View
             style={[
               styles.sheet,
@@ -246,7 +276,7 @@ export default function FeedScreen() {
               <Text type="header" variant="accent" style={styles.sheetDayNum}>
                 {format(parseISO(selectedEntry.date), "d", { locale })}
               </Text>
-              <View>
+              <View style={styles.sheetMeta}>
                 <Text
                   type="overline"
                   variant="tertiary"
@@ -270,22 +300,112 @@ export default function FeedScreen() {
                     return s.charAt(0).toUpperCase() + s.slice(1);
                   })()}
                 </Text>
+                {selectedMood !== null && (
+                  <View style={styles.sheetMoodRow}>
+                    <MoodDot score={selectedMood} size={8} />
+                    <Text
+                      type="label"
+                      variant={selectedMood > 0 ? "accent" : selectedMood < 0 ? "challenging" : "secondary"}
+                    >
+                      {selectedMood > 0 ? `+${selectedMood}` : `${selectedMood}`}
+                    </Text>
+                  </View>
+                )}
               </View>
             </View>
 
-            {/* Full text */}
-            <ScrollView
-              style={styles.sheetScroll}
-              showsVerticalScrollIndicator={false}
-              bounces={false}
-            >
-              <Text type="entry" style={styles.sheetText}>
-                {selectedEntry.text || "—"}
-              </Text>
-            </ScrollView>
+            {/* Text or edit input */}
+            {isEditing ? (
+              <TextInput
+                style={[styles.sheetEditInput, { color: theme.text }]}
+                value={editText}
+                onChangeText={setEditText}
+                multiline
+                autoFocus
+                autoCorrect
+                autoCapitalize="sentences"
+                textAlignVertical="top"
+                scrollEnabled
+              />
+            ) : (
+              <ScrollView
+                style={styles.sheetScroll}
+                showsVerticalScrollIndicator={false}
+                bounces={false}
+              >
+                <Text type="entry" style={styles.sheetText}>
+                  {selectedEntry.text || "—"}
+                </Text>
+              </ScrollView>
+            )}
+
+            {/* Actions */}
+            {isEditing ? (
+              <Pressable style={[styles.saveBtn, { backgroundColor: theme.tint }]} onPress={handleSaveEdit}>
+                <Text type="action" style={{ color: "#fff" }}>{t("feed.save")}</Text>
+              </Pressable>
+            ) : (
+              <View style={styles.dangerZone}>
+                {dangerAction === null && (
+                  <Pressable
+                    style={styles.dangerToggle}
+                    onPress={() => setShowDangerZone((v) => !v)}
+                  >
+                    <Text type="caption" variant="tertiary" style={styles.dangerToggleText}>
+                      {showDangerZone ? "▾" : "▸"} {t("feed.dangerZoneLabel")}
+                    </Text>
+                  </Pressable>
+                )}
+                {showDangerZone && dangerAction === null && (
+                  <View style={styles.dangerActions}>
+                    <Pressable onPress={() => setDangerAction('edit')}>
+                      <Text type="caption" variant="tertiary">{t("feed.edit")}</Text>
+                    </Pressable>
+                    <Text type="caption" variant="tertiary" style={styles.dangerDot}>·</Text>
+                    <Pressable onPress={() => setDangerAction('delete')}>
+                      <Text type="caption" variant="challenging">{t("feed.delete")}</Text>
+                    </Pressable>
+                  </View>
+                )}
+                {dangerAction === 'edit' && (
+                  <View style={styles.dangerConfirm}>
+                    <Text type="caption" variant="secondary" style={styles.dangerConfirmText}>
+                      {t("feed.editConfirmMessage")}
+                    </Text>
+                    <View style={styles.dangerConfirmActions}>
+                      <Pressable onPress={handleConfirmEdit}>
+                        <Text type="caption" variant="tertiary">{t("feed.editConfirmOk")}</Text>
+                      </Pressable>
+                      <Text type="caption" variant="tertiary" style={styles.dangerDot}>·</Text>
+                      <Pressable onPress={() => setDangerAction(null)}>
+                        <Text type="caption" variant="tertiary">{t("auth.cancel")}</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                )}
+                {dangerAction === 'delete' && (
+                  <View style={styles.dangerConfirm}>
+                    <Text type="caption" variant="secondary" style={styles.dangerConfirmText}>
+                      {t("feed.deleteConfirmMessage")}
+                    </Text>
+                    <View style={styles.dangerConfirmActions}>
+                      <Pressable onPress={handleConfirmDelete}>
+                        <Text type="caption" variant="challenging">{t("feed.deleteConfirmOk")}</Text>
+                      </Pressable>
+                      <Text type="caption" variant="tertiary" style={styles.dangerDot}>·</Text>
+                      <Pressable onPress={() => setDangerAction(null)}>
+                        <Text type="caption" variant="tertiary">{t("auth.cancel")}</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                )}
+              </View>
+            )}
           </View>
-        )}
+          )}
+        </View>
       </Modal>
+
     </View>
   );
 }
@@ -374,9 +494,73 @@ const styles = StyleSheet.create({
     paddingTop: Spacing[2],
     paddingBottom: Spacing[4],
   },
+  sheetMeta: {
+    gap: 2,
+  },
   sheetDayNum: { fontSize: 48, lineHeight: 52, fontWeight: "300" },
   sheetWeekday: { letterSpacing: 1.2 },
   sheetMonthYear: { marginTop: 2 },
+  sheetMoodRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing[2],
+    marginTop: Spacing[1],
+  },
   sheetScroll: { paddingHorizontal: Spacing[6] },
   sheetText: { lineHeight: 28, paddingBottom: Spacing[4] },
+  sheetEditInput: {
+    flex: 1,
+    paddingHorizontal: Spacing[6],
+    paddingBottom: Spacing[4],
+    fontSize: 17,
+    lineHeight: 28,
+    minHeight: 120,
+  },
+  saveBtn: {
+    marginHorizontal: Spacing[5],
+    marginTop: Spacing[3],
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: Spacing[3],
+    borderRadius: Radii.lg,
+    minHeight: 44,
+  },
+  dangerZone: {
+    paddingHorizontal: Spacing[5],
+    paddingTop: Spacing[2],
+    paddingBottom: Spacing[1],
+    alignItems: "center",
+  },
+  dangerToggle: {
+    paddingVertical: Spacing[2],
+    paddingHorizontal: Spacing[3],
+  },
+  dangerToggleText: {
+    fontSize: 12,
+    letterSpacing: 0.2,
+  },
+  dangerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing[2],
+    paddingVertical: Spacing[1],
+  },
+  dangerDot: {
+    fontSize: 12,
+  },
+  dangerConfirm: {
+    paddingHorizontal: Spacing[3],
+    paddingVertical: Spacing[1],
+    alignItems: "center",
+    gap: Spacing[2],
+  },
+  dangerConfirmText: {
+    textAlign: "center",
+    lineHeight: 18,
+  },
+  dangerConfirmActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing[2],
+  },
 });

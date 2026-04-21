@@ -1,4 +1,5 @@
 export type EntryKind = 'common' | 'private';
+export type MoodScore = -3 | -2 | -1 | 0 | 1 | 2 | 3;
 
 export interface Entry {
   id: number;
@@ -13,9 +14,16 @@ export interface Entry {
 export type NewEntry = Omit<Entry, 'id' | 'created_at'>;
 export type MoodLabel = 'positive' | 'neutral' | 'challenging';
 
+export function normalizeMoodScore(score: number | null): MoodScore | null {
+  if (score === null) return null;
+  const normalized = Math.max(-3, Math.min(3, Math.round(score)));
+  return normalized as MoodScore;
+}
+
 export function moodLabel(score: number | null): MoodLabel {
-  if (score === null) return 'neutral';
-  if (score > 0.1) return 'positive';
-  if (score < -0.1) return 'challenging';
+  const normalized = normalizeMoodScore(score);
+  if (normalized === null) return 'neutral';
+  if (normalized > 0) return 'positive';
+  if (normalized < 0) return 'challenging';
   return 'neutral';
 }

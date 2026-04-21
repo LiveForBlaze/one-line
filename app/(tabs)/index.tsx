@@ -1,7 +1,7 @@
 import { OnThisDay } from "@/components/OnThisDay";
 import { Text } from "@/components/ui/Text";
 import { FontSizes, Radii, Spacing } from "@/constants/theme";
-import type { EntryKind } from "@/db/types";
+import { normalizeMoodScore, type EntryKind, type MoodScore } from "@/db/types";
 import { useDateLocale } from "@/hooks/useDateLocale";
 import { useT } from "@/hooks/useT";
 import { useTheme } from "@/hooks/useTheme";
@@ -23,6 +23,7 @@ import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const SOFT_LIMIT = 200;
+const MOOD_OPTIONS: MoodScore[] = [-3, -2, -1, 0, 1, 2, 3];
 
 export default function TodayScreen() {
   const theme = useTheme();
@@ -42,7 +43,9 @@ export default function TodayScreen() {
   const [activeKind, setActiveKind] = useState<EntryKind>("common");
   const [commonText, setCommonText] = useState("");
   const [privateText, setPrivateText] = useState("");
-  const [isSaved, setIsSaved] = useState(false);
+  const [commonMood, setCommonMood] = useState<MoodScore | null>(null);
+  const [privateMood, setPrivateMood] = useState<MoodScore | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const today = new Date();
@@ -67,23 +70,27 @@ export default function TodayScreen() {
 
   useEffect(() => {
     setCommonText(todayCommon?.text ?? "");
+    setCommonMood(normalizeMoodScore(todayCommon?.mood_score ?? null));
   }, [todayCommon]);
 
   useEffect(() => {
     setPrivateText(todayPrivate?.text ?? "");
+    setPrivateMood(normalizeMoodScore(todayPrivate?.mood_score ?? null));
   }, [todayPrivate]);
 
   const activeText = activeKind === "common" ? commonText : privateText;
   const setActiveText =
     activeKind === "common" ? setCommonText : setPrivateText;
+  const activeMood = activeKind === "common" ? commonMood : privateMood;
+  const setActiveMood = activeKind === "common" ? setCommonMood : setPrivateMood;
 
   const triggerSave = useCallback(
-    (kind: EntryKind, text: string) => {
+    (kind: EntryKind, text: string, moodScore: MoodScore | null) => {
+      setIsSaving(true);
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       saveTimerRef.current = setTimeout(() => {
-        saveEntry(text, kind);
-        setIsSaved(true);
-        setTimeout(() => setIsSaved(false), 2000);
+        saveEntry(text, kind, moodScore);
+        setIsSaving(false);
       }, 600);
     },
     [saveEntry],
@@ -92,10 +99,53 @@ export default function TodayScreen() {
   const handleChangeText = useCallback(
     (val: string) => {
       setActiveText(val);
-      setIsSaved(false);
-      triggerSave(activeKind, val);
+      triggerSave(activeKind, val, activeMood);
     },
-    [activeKind, setActiveText, triggerSave],
+    [activeKind, activeMood, setActiveText, triggerSave],
+  );
+
+  const handleMoodSelect = useCallback(
+    (mood: MoodScore) => {
+      const nextMood = activeMood === mood ? null : mood;
+      setActiveMood(nextMood);
+      triggerSave(activeKind, activeText, nextMood);
+    },
+    [activeKind, activeMood, activeText, setActiveMood, triggerSave],
+  );
+
+  const getMoodChipColors = useCallback(
+    (score: MoodScore) => {
+      if (score > 0) {
+        return {
+          backgroundColor: theme.positiveBackground,
+          borderColor: theme.positive,
+          textColor: theme.positive,
+        };
+      }
+
+      if (score < 0) {
+        return {
+          backgroundColor: theme.challengingBackground,
+          borderColor: theme.challenging,
+          textColor: theme.challenging,
+        };
+      }
+
+      return {
+        backgroundColor: theme.surfaceElevated,
+        borderColor: theme.borderStrong,
+        textColor: theme.textSecondary,
+      };
+    },
+    [
+      theme.borderStrong,
+      theme.challenging,
+      theme.challengingBackground,
+      theme.positive,
+      theme.positiveBackground,
+      theme.surfaceElevated,
+      theme.textSecondary,
+    ],
   );
 
   const isNearLimit = activeText.length >= SOFT_LIMIT - 20;
@@ -189,6 +239,7 @@ export default function TodayScreen() {
               {activeKind === "common" ? t("today.common") : t("today.private")}
             </Text>
           </View>
+
           <TextInput
             style={[
               styles.input,
@@ -209,26 +260,79 @@ export default function TodayScreen() {
             autoCapitalize="sentences"
           />
 
-          <View style={[styles.cardFooter, { borderTopColor: theme.border }]}>
-            <View style={styles.statusRow}>
-              {isSaved && (
-                <Animated.View
-                  entering={FadeIn.duration(200)}
-                  exiting={FadeOut.duration(300)}
-                >
-                  <Text type="caption" variant="positive">
-                    {t("today.saved")}
-                  </Text>
-                </Animated.View>
-              )}
-            </View>
-            {(isNearLimit || activeText.length > 0) && (
+          {(isNearLimit || activeText.length > 0) && (
+            <View style={styles.charCountRow}>
               <Text type="caption" color={charCountColor}>
                 {activeText.length}
-                {isOverLimit ? `\u202F/\u202F${SOFT_LIMIT}` : ""}
+                {`\u202F/\u202F${SOFT_LIMIT}`}
               </Text>
-            )}
+            </View>
+          )}
+
+          <View
+            style={[
+              styles.moodSection,
+              {
+                backgroundColor: theme.surfaceElevated,
+                borderColor: theme.border,
+              },
+            ]}
+          >
+            <View style={styles.moodLegendRow}>
+              <Text type="caption" variant="tertiary" style={styles.moodLegendSide}>
+                {t("today.moodLow")}
+              </Text>
+              <Text type="caption" variant="secondary" style={styles.moodLabel}>
+                {t("today.mood")}
+              </Text>
+              <Text type="caption" variant="tertiary" style={styles.moodLegendSide}>
+                {t("today.moodHigh")}
+              </Text>
+            </View>
+            <View style={styles.moodRow}>
+              {MOOD_OPTIONS.map((score) => {
+                const selected = activeMood === score;
+                const colors = getMoodChipColors(score);
+
+                return (
+                  <Pressable
+                    key={score}
+                    onPress={() => handleMoodSelect(score)}
+                    style={({ pressed }) => [
+                      styles.moodChip,
+                      {
+                        backgroundColor: selected ? colors.backgroundColor : theme.surface,
+                        borderColor: selected ? colors.borderColor : theme.border,
+                        opacity: pressed ? 0.72 : 1,
+                      },
+                    ]}
+                  >
+                    <Text
+                      type="label"
+                      style={{ color: selected ? colors.textColor : theme.textSecondary }}
+                    >
+                      {score > 0 ? `+${score}` : `${score}`}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
           </View>
+        </View>
+
+        <View style={styles.savedRow}>
+          {isSaving ? (
+            <Animated.View
+              entering={FadeIn.duration(200)}
+              exiting={FadeOut.duration(300)}
+            >
+              <Text type="caption" variant="tertiary">
+                {t("today.saving")}
+              </Text>
+            </Animated.View>
+          ) : (
+            <View style={styles.savedPlaceholder} />
+          )}
         </View>
 
         <OnThisDay entries={onThisDay} isPrivateModeOn={isPrivateModeOn} />
@@ -292,23 +396,64 @@ const styles = StyleSheet.create({
     paddingTop: Spacing[4],
     paddingBottom: Spacing[1],
   },
+  moodSection: {
+    marginHorizontal: Spacing[3],
+    marginTop: Spacing[1],
+    marginBottom: Spacing[3],
+    paddingHorizontal: Spacing[3],
+    paddingTop: Spacing[2],
+    paddingBottom: Spacing[2],
+    gap: Spacing[1],
+    borderRadius: Radii.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  moodLabel: {
+    letterSpacing: 0.2,
+    textAlign: "center",
+    flex: 1,
+  },
+  moodRow: {
+    flexDirection: "row",
+    gap: 6,
+    flexWrap: "nowrap",
+  },
+  moodLegendRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingBottom: 2,
+  },
+  moodLegendSide: {
+    minWidth: 36,
+  },
+  moodChip: {
+    flex: 1,
+    minWidth: 0,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 6,
+    paddingHorizontal: 0,
+    borderRadius: Radii.md,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
   input: {
     minHeight: 168,
     padding: Spacing[5],
-    paddingTop: Spacing[4],
+    paddingTop: 0,
     lineHeight: 29,
   },
-  cardFooter: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  charCountRow: {
+    alignItems: "flex-end",
     paddingHorizontal: Spacing[5],
-    paddingVertical: Spacing[3],
-    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingBottom: Spacing[1],
   },
-  statusRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing[2],
+  savedRow: {
+    minHeight: 20,
+    alignItems: "flex-start",
+    justifyContent: "center",
+    paddingHorizontal: Spacing[5],
+    paddingTop: Spacing[1],
+  },
+  savedPlaceholder: {
+    height: 16,
   },
 });
